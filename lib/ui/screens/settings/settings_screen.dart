@@ -128,6 +128,31 @@ class SettingsScreen extends ConsumerWidget {
             error: (e, _) => Text('Error: $e'),
           ),
 
+          // Security
+          _Section(
+            title: 'Keamanan',
+            icon: Icons.security_rounded,
+            bg: bg,
+            bd: bd,
+            dk: dk,
+            children: [
+              _SettingRow(
+                label: 'Ubah Username & Password',
+                dk: dk,
+                trailing: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                  ),
+                  icon: const Icon(Icons.key_rounded, size: 18),
+                  label: const Text('Ubah'),
+                  onPressed: () => _showChangeCredentialDialog(context, ref),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
           // Backup & Restore
           _Section(
             title: 'Backup & Restore',
@@ -193,7 +218,7 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      'Flutter Desktop • SQLite • Offline',
+                      'Create Mustofa No : 0813 5908 8246 ',
                       style: GoogleFonts.inter(fontSize: 12, color: c2),
                     ),
                   ],
@@ -262,6 +287,13 @@ class SettingsScreen extends ConsumerWidget {
           ),
         );
     }
+  }
+
+  void _showChangeCredentialDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => const _ChangeCredentialDialog(),
+    );
   }
 }
 
@@ -461,4 +493,142 @@ class _EditableSettingState extends State<_EditableSetting> {
       ],
     ),
   );
+}
+
+class _ChangeCredentialDialog extends ConsumerStatefulWidget {
+  const _ChangeCredentialDialog();
+
+  @override
+  ConsumerState<_ChangeCredentialDialog> createState() =>
+      _ChangeCredentialDialogState();
+}
+
+class _ChangeCredentialDialogState
+    extends ConsumerState<_ChangeCredentialDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _oldPassController = TextEditingController();
+  final _newUserController = TextEditingController();
+  final _newPassController = TextEditingController();
+  bool _obscureOld = true;
+  bool _obscureNew = true;
+
+  @override
+  void initState() {
+    super.initState();
+    final currentUser = ref.read(authProvider).currentUser;
+    if (currentUser != null) {
+      _newUserController.text = currentUser.username;
+    }
+  }
+
+  @override
+  void dispose() {
+    _oldPassController.dispose();
+    _newUserController.dispose();
+    _newPassController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final currentUser = ref.read(authProvider).currentUser;
+    if (currentUser == null) return;
+
+    final db = ref.read(databaseProvider);
+    final success = await db.updateAdminCredentials(
+      currentUser.id,
+      _oldPassController.text,
+      _newUserController.text.trim(),
+      _newPassController.text,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Detail login berhasil diperbarui! Silakan login ulang.',
+          ),
+          backgroundColor: AppColors.success,
+        ),
+      );
+      ref.read(authProvider.notifier).logout();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password lama salah!'),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Ubah Username & Password'),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _oldPassController,
+                obscureText: _obscureOld,
+                decoration: InputDecoration(
+                  labelText: 'Password Saat Ini',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureOld ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () => setState(() => _obscureOld = !_obscureOld),
+                  ),
+                ),
+                validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
+              ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _newUserController,
+                decoration: const InputDecoration(
+                  labelText: 'Username Baru',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _newPassController,
+                obscureText: _obscureNew,
+                decoration: InputDecoration(
+                  labelText: 'Password Baru',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureNew ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () => setState(() => _obscureNew = !_obscureNew),
+                  ),
+                ),
+                validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Batal'),
+        ),
+        ElevatedButton(onPressed: _save, child: const Text('Simpan')),
+      ],
+    );
+  }
 }

@@ -1,10 +1,52 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:printing/printing.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../data/services/pdf_report_service.dart';
+import '../../../providers/providers.dart';
 
 class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});
+
+  Future<void> _generateReport(
+    BuildContext context,
+    WidgetRef ref,
+    String title,
+    Future<Uint8List> Function(PdfReportService) generator,
+  ) async {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final db = ref.read(databaseProvider);
+      final service = PdfReportService(db);
+      final pdfBytes = await generator(service);
+
+      if (context.mounted) {
+        Navigator.pop(context); // Close loading
+        await Printing.layoutPdf(
+          onLayout: (format) async => pdfBytes,
+          name: title,
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context); // Close loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal membuat laporan: $e'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,7 +90,15 @@ class ReportsScreen extends ConsumerWidget {
                   bg: bg,
                   bd: bd,
                   dk: dk,
-                  onTap: () => _showComingSoon(context),
+                  onTap: () => _generateReport(
+                    context,
+                    ref,
+                    'Laporan Data Buku',
+                    (s) async {
+                      final books = await s.db.getAllBooks();
+                      return s.generateBookReport(books);
+                    },
+                  ),
                 ),
                 _ReportCard(
                   icon: Icons.people_rounded,
@@ -58,7 +108,15 @@ class ReportsScreen extends ConsumerWidget {
                   bg: bg,
                   bd: bd,
                   dk: dk,
-                  onTap: () => _showComingSoon(context),
+                  onTap: () => _generateReport(
+                    context,
+                    ref,
+                    'Laporan Data Santri',
+                    (s) async {
+                      final students = await s.db.getAllStudents();
+                      return s.generateStudentReport(students);
+                    },
+                  ),
                 ),
                 _ReportCard(
                   icon: Icons.swap_horiz_rounded,
@@ -68,7 +126,17 @@ class ReportsScreen extends ConsumerWidget {
                   bg: bg,
                   bd: bd,
                   dk: dk,
-                  onTap: () => _showComingSoon(context),
+                  onTap: () => _generateReport(
+                    context,
+                    ref,
+                    'Laporan Peminjaman',
+                    (s) async {
+                      final loans = await s.db.getAllLoans();
+                      final students = await s.db.getAllStudents();
+                      final books = await s.db.getAllBooks();
+                      return s.generateLoanReport(loans, students, books);
+                    },
+                  ),
                 ),
                 _ReportCard(
                   icon: Icons.warning_rounded,
@@ -111,7 +179,7 @@ class ReportsScreen extends ConsumerWidget {
   void _showComingSoon(BuildContext ctx) {
     ScaffoldMessenger.of(ctx).showSnackBar(
       const SnackBar(
-        content: Text('Fitur cetak PDF akan tersedia di Phase 2'),
+        content: Text('Fitur cetak PDF akan tersedia di update berikutnya'),
         backgroundColor: AppColors.info,
       ),
     );

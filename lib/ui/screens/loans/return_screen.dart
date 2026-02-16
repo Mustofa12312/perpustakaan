@@ -71,12 +71,14 @@ class ReturnScreen extends ConsumerWidget {
                       itemBuilder: (ctx, i) {
                         final l = loans[i];
                         final now = DateTime.now();
-                        final late =
-                            l.loanStatus == 'dipinjam' &&
-                            l.dueDate.isBefore(now);
-                        final daysLate = late
-                            ? now.difference(l.dueDate).inDays
-                            : 0;
+                        final today = DateTime(now.year, now.month, now.day);
+                        final due = DateTime(
+                          l.dueDate.year,
+                          l.dueDate.month,
+                          l.dueDate.day,
+                        );
+                        final daysLate = today.difference(due).inDays;
+                        final late = daysLate > 0;
                         return Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(

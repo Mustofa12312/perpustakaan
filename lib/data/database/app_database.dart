@@ -70,6 +70,31 @@ class AppDatabase extends _$AppDatabase {
         .getSingleOrNull();
   }
 
+  Future<bool> updateAdminCredentials(
+    int userId,
+    String currentPassword,
+    String newUsername,
+    String newPassword,
+  ) async {
+    final hash = _hashPassword(currentPassword);
+    final user = await (select(
+      users,
+    )..where((u) => u.id.equals(userId))).getSingleOrNull();
+
+    if (user == null || user.passwordHash != hash) {
+      return false;
+    }
+
+    final newHash = _hashPassword(newPassword);
+    await (update(users)..where((u) => u.id.equals(userId))).write(
+      UsersCompanion(
+        username: Value(newUsername),
+        passwordHash: Value(newHash),
+      ),
+    );
+    return true;
+  }
+
   Future<List<User>> getAllUsers() => select(users).get();
 
   Future<int> insertUser(UsersCompanion user) => into(users).insert(user);
@@ -291,10 +316,16 @@ class AppDatabase extends _$AppDatabase {
   Future<void> returnBook(int loanId, int finePerDay) async {
     await transaction(() async {
       final loan = await getLoanById(loanId);
-      if (loan == null) return;
+      if (loan == null || loan.status == 'dikembalikan') return;
 
       final now = DateTime.now();
-      final daysLate = now.difference(loan.dueDate).inDays;
+      final today = DateTime(now.year, now.month, now.day);
+      final due = DateTime(
+        loan.dueDate.year,
+        loan.dueDate.month,
+        loan.dueDate.day,
+      );
+      final daysLate = today.difference(due).inDays;
 
       // Update loan status
       await (update(loans)..where((l) => l.id.equals(loanId))).write(
@@ -307,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
       // Increase book available qty
       await customStatement(
         'UPDATE books SET available_qty = available_qty + 1 WHERE id = ?',
-        [Variable.withInt(loan.bookId)],
+        [loan.bookId],
       );
 
       // Create fine if late
