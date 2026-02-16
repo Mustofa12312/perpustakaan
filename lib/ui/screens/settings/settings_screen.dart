@@ -511,6 +511,7 @@ class _ChangeCredentialDialogState
   final _newPassController = TextEditingController();
   bool _obscureOld = true;
   bool _obscureNew = true;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -533,36 +534,64 @@ class _ChangeCredentialDialogState
     if (!_formKey.currentState!.validate()) return;
 
     final currentUser = ref.read(authProvider).currentUser;
-    if (currentUser == null) return;
-
-    final db = ref.read(databaseProvider);
-    final success = await db.updateAdminCredentials(
-      currentUser.id,
-      _oldPassController.text,
-      _newUserController.text.trim(),
-      _newPassController.text,
-    );
-
-    if (!mounted) return;
-
-    if (success) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Detail login berhasil diperbarui! Silakan login ulang.',
+    if (currentUser == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Sesi habis. Silakan login kembali.'),
+            backgroundColor: AppColors.danger,
           ),
-          backgroundColor: AppColors.success,
-        ),
+        );
+        Navigator.pop(context); // Close dialog
+        // Optional: Redirect to login if needed, but for now just close dialog
+      }
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final db = ref.read(databaseProvider);
+      final success = await db.updateAdminCredentials(
+        currentUser.id,
+        _oldPassController.text,
+        _newUserController.text.trim(),
+        _newPassController.text,
       );
-      ref.read(authProvider.notifier).logout();
-    } else {
+
+      if (!mounted) return;
+
+      if (success) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Detail login berhasil diperbarui! Silakan login ulang.',
+            ),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        ref.read(authProvider.notifier).logout();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password lama salah!'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password lama salah!'),
+        SnackBar(
+          content: Text(
+            'Gagal: ${e.toString().contains('UNIQUE constraint') ? 'Username sudah dipakai' : e.toString()}',
+          ),
           backgroundColor: AppColors.danger,
         ),
       );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -599,8 +628,13 @@ class _ChangeCredentialDialogState
                 decoration: const InputDecoration(
                   labelText: 'Username Baru',
                   border: OutlineInputBorder(),
+                  helperText: 'Minimal 3 karakter',
                 ),
-                validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Wajib diisi';
+                  if (v.trim().length < 3) return 'Minimal 3 karakter';
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -624,10 +658,22 @@ class _ChangeCredentialDialogState
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isLoading ? null : () => Navigator.pop(context),
           child: const Text('Batal'),
         ),
-        ElevatedButton(onPressed: _save, child: const Text('Simpan')),
+        ElevatedButton(
+          onPressed: _isLoading ? null : _save,
+          child: _isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Simpan'),
+        ),
       ],
     );
   }
