@@ -5,6 +5,7 @@ import 'package:drift/drift.dart' as drift;
 import '../../../core/theme/app_theme.dart';
 import '../../../providers/providers.dart';
 import '../../../data/database/app_database.dart';
+import '../../widgets/csv_import_dialog.dart';
 
 class BookListScreen extends ConsumerStatefulWidget {
   const BookListScreen({super.key});
@@ -77,6 +78,24 @@ class _BookListScreenState extends ConsumerState<BookListScreen> {
                   ],
                 ),
               ),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final db = ref.read(databaseProvider);
+                  final imported = await showDialog<bool>(
+                    context: context,
+                    builder: (_) => CsvImportDialog(
+                      importType: ImportType.books,
+                      database: db,
+                    ),
+                  );
+                  if (imported == true) {
+                    ref.invalidate(booksProvider);
+                  }
+                },
+                icon: const Icon(Icons.upload_file_rounded, size: 18),
+                label: const Text('Import CSV'),
+              ),
+              const SizedBox(width: 10),
               ElevatedButton.icon(
                 onPressed: () => _showBookForm(context),
                 icon: const Icon(Icons.add_rounded, size: 20),

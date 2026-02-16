@@ -24,7 +24,7 @@ class CsvImportService {
   Future<List<Map<String, String>>> parseFile(String filePath) async {
     final file = File(filePath);
     final content = await file.readAsString();
-    final rows = const CsvToListConverter(eol: '\n').convert(content);
+    final rows = const CsvDecoder().convert(content);
 
     if (rows.isEmpty) return [];
 

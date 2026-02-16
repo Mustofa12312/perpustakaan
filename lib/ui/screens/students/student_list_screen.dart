@@ -5,6 +5,7 @@ import 'package:drift/drift.dart' as drift;
 import '../../../core/theme/app_theme.dart';
 import '../../../providers/providers.dart';
 import '../../../data/database/app_database.dart';
+import '../../widgets/csv_import_dialog.dart';
 
 class StudentListScreen extends ConsumerStatefulWidget {
   const StudentListScreen({super.key});
@@ -64,6 +65,24 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                   ],
                 ),
               ),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final db = ref.read(databaseProvider);
+                  final imported = await showDialog<bool>(
+                    context: context,
+                    builder: (_) => CsvImportDialog(
+                      importType: ImportType.students,
+                      database: db,
+                    ),
+                  );
+                  if (imported == true) {
+                    ref.invalidate(studentsProvider);
+                  }
+                },
+                icon: const Icon(Icons.upload_file_rounded, size: 18),
+                label: const Text('Import CSV'),
+              ),
+              const SizedBox(width: 10),
               ElevatedButton.icon(
                 onPressed: () => _showStudentForm(context),
                 icon: const Icon(Icons.person_add_rounded, size: 20),
