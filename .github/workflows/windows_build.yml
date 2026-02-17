@@ -7,35 +7,72 @@ on:
 
 jobs:
   build:
+    name: Build & Release
     runs-on: windows-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Flutter
+      # Setup Flutter Environment
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
+      
+      # Explicitly Enable Windows Desktop Support
+      - name: Enable Windows Support
+        run: flutter config --enable-windows-desktop
 
+      # Install Dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Windows
+      # Build the Release Exe
+      - name: Build Windows Release
         run: flutter build windows --release
 
-      - name: List Release Files
-        run: ls ./build/windows/x64/runner/Release
+      # Verify the Build Exists (Debugging Step)
+      - name: Check Build Artifacts
+        shell: powershell
+        run: |
+          if (Test-Path "build\windows\x64\runner\Release\perpustakaan.exe") {
+            Write-Host "SUCCESS: Executable found!"
+            Get-ChildItem -Path "build\windows\x64\runner\Release"
+          } else {
+            Write-Error "FAILURE: Executable not found!"
+            exit 1
+          }
 
+      # Install Inno Setup via Chocolatey
       - name: Install Inno Setup
         run: choco install innosetup --no-progress
 
-      - name: Compile Inno Setup Script
-        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" windows/installer.iss'
+      # Compile Installer using PowerShell to handle Paths reliably
+      - name: Compile Installer
+        shell: powershell
+        run: |
+          # Try default installation path
+          $isccPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          
+          if (-not (Test-Path $isccPath)) {
+            Write-Host "ISCC not found at default path, searching..."
+            # Fallback search if needed, but choco usually puts it there
+            $isccPath = (Get-Command iscc.exe -ErrorAction SilentlyContinue).Source
+          }
+          
+          if (-not $isccPath) {
+            Write-Error "Could not find ISCC.exe compiler!"
+            exit 1
+          }
+          
+          Write-Host "Using ISCC at: $isccPath"
+          & $isccPath "windows\installer.iss"
 
-      - name: Upload Installer Exe
+      # Upload the final setup.exe
+      - name: Upload Installer
         uses: actions/upload-artifact@v4
         with:
-          name: setup_perpustakaan
-          path: windows/setup_perpustakaan.exe
+          name: SetupPerpustakaan
+          path: windows\setup_perpustakaan.exe
