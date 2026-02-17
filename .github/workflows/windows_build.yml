@@ -1,0 +1,40 @@
+name: Build Windows Exe
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Windows
+        run: flutter build windows --release
+
+      - name: List Release Files
+        run: ls ./build/windows/x64/runner/Release
+
+      - name: Compile Inno Setup Script
+        uses: Minionguyjosh/inno-setup-action@v1.2.2
+        with:
+          path: windows/installer.iss
+
+      - name: Upload Installer Exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: setup_perpustakaan
+          path: windows/setup_perpustakaan.exe
