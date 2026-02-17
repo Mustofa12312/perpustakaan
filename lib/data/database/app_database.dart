@@ -199,12 +199,13 @@ class AppDatabase extends _$AppDatabase {
       (select(students)..orderBy([(s) => OrderingTerm.asc(s.name)])).watch();
 
   Future<List<Student>> searchStudents(String query) {
+    final lowerQuery = query.toLowerCase();
     return (select(students)
           ..where(
             (s) =>
-                s.name.like('%$query%') |
-                s.nis.like('%$query%') |
-                s.classRoom.like('%$query%'),
+                s.name.lower().like('%$lowerQuery%') |
+                s.nis.like('%$lowerQuery%') |
+                s.classRoom.lower().like('%$lowerQuery%'),
           )
           ..orderBy([(s) => OrderingTerm.asc(s.name)]))
         .get();
