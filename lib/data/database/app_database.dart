@@ -191,6 +191,8 @@ class AppDatabase extends _$AppDatabase {
   Future<Book?> getBookByCode(String code) =>
       (select(books)..where((b) => b.code.equals(code))).getSingleOrNull();
 
+  Future<void> deleteAllBooks() => delete(books).go();
+
   // ==================== STUDENT QUERIES ====================
   Future<List<Student>> getAllStudents() =>
       (select(students)..orderBy([(s) => OrderingTerm.asc(s.name)])).get();
@@ -219,6 +221,8 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> deleteStudent(int id) =>
       (delete(students)..where((s) => s.id.equals(id))).go();
+
+  Future<void> deleteAllStudents() => delete(students).go();
 
   // ==================== LOAN QUERIES ====================
   Future<List<Loan>> getAllLoans() =>

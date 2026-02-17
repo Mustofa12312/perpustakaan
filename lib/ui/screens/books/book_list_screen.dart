@@ -96,6 +96,17 @@ class _BookListScreenState extends ConsumerState<BookListScreen> {
                 label: const Text('Import CSV'),
               ),
               const SizedBox(width: 10),
+              // Delete all button
+              OutlinedButton.icon(
+                onPressed: () => _deleteAllBooks(context),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.danger,
+                  side: const BorderSide(color: AppColors.danger),
+                ),
+                icon: const Icon(Icons.delete_sweep_rounded, size: 18),
+                label: const Text('Hapus Semua'),
+              ),
+              const SizedBox(width: 10),
               ElevatedButton.icon(
                 onPressed: () => _showBookForm(context),
                 icon: const Icon(Icons.add_rounded, size: 20),
@@ -269,6 +280,55 @@ class _BookListScreenState extends ConsumerState<BookListScreen> {
       await ref.read(databaseProvider).deleteBook(book.id);
       ref.invalidate(booksProvider);
       ref.invalidate(dashboardStatsProvider);
+    }
+  }
+
+  Future<void> _deleteAllBooks(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus SEMUA Buku?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.warning_rounded,
+              size: 48,
+              color: AppColors.danger,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Tindakan ini tidak dapat dibatalkan! Semua data buku akan hilang permanen.',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('YA, HAPUS SEMUA'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await ref.read(databaseProvider).deleteAllBooks();
+      ref.invalidate(booksProvider);
+      ref.invalidate(dashboardStatsProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Semua data buku berhasil dihapus'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
     }
   }
 }

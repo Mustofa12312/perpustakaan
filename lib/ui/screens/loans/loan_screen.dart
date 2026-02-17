@@ -16,10 +16,66 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
   Student? _student;
   Book? _book;
   int _days = 7;
+  DateTime? _customDate;
   bool _busy = false;
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final d = await showDatePicker(
+      context: context,
+      initialDate: now.add(const Duration(days: 7)),
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
+    );
+    if (d != null) {
+      setState(() {
+        _customDate = d;
+        _days = 0;
+      });
+    }
+  }
 
   Future<void> _process() async {
     if (_student == null || _book == null) return;
+
+    // Confirmation
+    final now = DateTime.now();
+    final due = _customDate ?? now.add(Duration(days: _days));
+
+    if (mounted) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (c) => AlertDialog(
+          title: const Text('Konfirmasi Peminjaman'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Santri: ${_student!.name} (${_student!.nis})'),
+              const SizedBox(height: 4),
+              Text('Buku: ${_book!.title}'),
+              const SizedBox(height: 12),
+              Text(
+                'Batas Kembali: ${DateFormat('dd MMM yyyy').format(due)}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(c, false),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(c, true),
+              child: const Text('Proses Pinjam'),
+            ),
+          ],
+        ),
+      );
+      if (confirm != true) return;
+    }
+
     setState(() => _busy = true);
     try {
       final db = ref.read(databaseProvider);
@@ -35,13 +91,13 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
         _err('Batas maks $max buku');
         return;
       }
-      final now = DateTime.now();
+
       await db.insertLoan(
         LoansCompanion.insert(
           studentId: _student!.id,
           bookId: _book!.id,
           userId: auth.currentUser?.id ?? 1,
-          dueDate: now.add(Duration(days: _days)),
+          dueDate: due,
         ),
       );
       await db.updateBook(
@@ -61,6 +117,8 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
         setState(() {
           _student = null;
           _book = null;
+          _days = 7;
+          _customDate = null;
         });
       }
     } catch (e) {
@@ -139,9 +197,10 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
                         const SizedBox(height: 8),
                         _Picker<Student>(
                           selected: _student,
-                          hint: 'Ketik nama atau NIS...',
+                          hint: 'Scan Kartu / Ketik NIS...',
                           search: (q) =>
                               ref.read(databaseProvider).searchStudents(q),
+                          matchExact: (s, q) => s.nis == q,
                           label: (s) => '${s.name} (${s.nis})',
                           subLabel: (s) => '${s.nis} • ${s.classRoom}',
                           onSelect: (s) => setState(() => _student = s),
@@ -160,11 +219,12 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
                         const SizedBox(height: 8),
                         _Picker<Book>(
                           selected: _book,
-                          hint: 'Ketik judul atau kode...',
+                          hint: 'Scan Barcode Buku / Ketik Judul...',
                           search: (q) async =>
                               (await ref.read(databaseProvider).searchBooks(q))
                                   .where((b) => b.availableQty > 0)
                                   .toList(),
+                          matchExact: (b, q) => b.code == q,
                           label: (b) => '${b.title} (${b.code})',
                           subLabel: (b) =>
                               '${b.code} • ${b.author} • Sisa: ${b.availableQty}',
@@ -194,10 +254,26 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
                                     30,
                                   ),
                                   onSelected: (s) {
-                                    if (s) setState(() => _days = d);
+                                    if (s) {
+                                      setState(() {
+                                        _days = d;
+                                        _customDate = null;
+                                      });
+                                    }
                                   },
                                 ),
                               ),
+                            ActionChip(
+                              label: Text(
+                                _customDate != null
+                                    ? DateFormat('dd/MM').format(_customDate!)
+                                    : 'Custom',
+                              ),
+                              backgroundColor: _customDate != null
+                                  ? AppColors.primary.withAlpha(50)
+                                  : null,
+                              onPressed: _pickDate,
+                            ),
                           ],
                         ),
                         const Spacer(),
@@ -278,9 +354,10 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
                         ),
                         _Sum(
                           'Batas Kembali',
-                          DateFormat(
-                            'dd MMM yyyy',
-                          ).format(DateTime.now().add(Duration(days: _days))),
+                          DateFormat('dd MMM yyyy').format(
+                            _customDate ??
+                                DateTime.now().add(Duration(days: _days)),
+                          ),
                           dk,
                           color: AppColors.accent,
                         ),
@@ -302,6 +379,7 @@ class _Picker<T> extends StatefulWidget {
   final String hint;
   final bool isDark;
   final Future<List<T>> Function(String) search;
+  final bool Function(T, String)? matchExact;
   final String Function(T) label;
   final String Function(T) subLabel;
   final void Function(T) onSelect;
@@ -311,6 +389,7 @@ class _Picker<T> extends StatefulWidget {
     required this.hint,
     required this.isDark,
     required this.search,
+    this.matchExact,
     required this.label,
     required this.subLabel,
     required this.onSelect,
@@ -324,6 +403,7 @@ class _PickerState<T> extends State<_Picker<T>> {
   final _c = TextEditingController();
   List<T> _r = [];
   bool _show = false;
+
   @override
   void dispose() {
     _c.dispose();
@@ -332,7 +412,7 @@ class _PickerState<T> extends State<_Picker<T>> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.selected != null)
+    if (widget.selected != null) {
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -364,6 +444,7 @@ class _PickerState<T> extends State<_Picker<T>> {
           ],
         ),
       );
+    }
     return Column(
       children: [
         TextField(
@@ -372,6 +453,41 @@ class _PickerState<T> extends State<_Picker<T>> {
             hintText: widget.hint,
             prefixIcon: const Icon(Icons.search_rounded, size: 20),
           ),
+          onSubmitted: (v) async {
+            if (v.trim().isEmpty) return;
+            final r = await widget.search(v);
+            if (r.isEmpty) return;
+
+            // Check exact first
+            if (widget.matchExact != null) {
+              for (final item in r) {
+                if (widget.matchExact!(item, v)) {
+                  widget.onSelect(item);
+                  _c.clear();
+                  setState(() {
+                    _r = [];
+                    _show = false;
+                  });
+                  return;
+                }
+              }
+            }
+            // If only one result, select it
+            if (r.length == 1) {
+              widget.onSelect(r.first);
+              _c.clear();
+              setState(() {
+                _r = [];
+                _show = false;
+              });
+            } else {
+              // Show options
+              setState(() {
+                _r = r;
+                _show = true;
+              });
+            }
+          },
           onChanged: (v) async {
             if (v.length >= 2) {
               final r = await widget.search(v);

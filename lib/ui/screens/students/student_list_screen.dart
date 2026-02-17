@@ -83,6 +83,17 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                 label: const Text('Import CSV'),
               ),
               const SizedBox(width: 10),
+              // Delete all button
+              OutlinedButton.icon(
+                onPressed: () => _deleteAllStudents(context),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.danger,
+                  side: const BorderSide(color: AppColors.danger),
+                ),
+                icon: const Icon(Icons.delete_sweep_rounded, size: 18),
+                label: const Text('Hapus Semua'),
+              ),
+              const SizedBox(width: 10),
               ElevatedButton.icon(
                 onPressed: () => _showStudentForm(context),
                 icon: const Icon(Icons.person_add_rounded, size: 20),
@@ -203,6 +214,55 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
       await ref.read(databaseProvider).deleteStudent(student.id);
       ref.invalidate(studentsProvider);
       ref.invalidate(dashboardStatsProvider);
+    }
+  }
+
+  Future<void> _deleteAllStudents(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus SEMUA Santri?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.warning_rounded,
+              size: 48,
+              color: AppColors.danger,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Tindakan ini tidak dapat dibatalkan! Semua data santri akan hilang permanen.',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('YA, HAPUS SEMUA'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await ref.read(databaseProvider).deleteAllStudents();
+      ref.invalidate(studentsProvider);
+      ref.invalidate(dashboardStatsProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Semua data santri berhasil dihapus'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
     }
   }
 }

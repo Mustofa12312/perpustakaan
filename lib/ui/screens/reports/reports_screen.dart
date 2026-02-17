@@ -146,7 +146,17 @@ class ReportsScreen extends ConsumerWidget {
                   bg: bg,
                   bd: bd,
                   dk: dk,
-                  onTap: () => _showComingSoon(context),
+                  onTap: () => _generateReport(
+                    context,
+                    ref,
+                    'Laporan Keterlambatan',
+                    (s) async {
+                      final loans = await s.db.getAllLoans();
+                      final students = await s.db.getAllStudents();
+                      final books = await s.db.getAllBooks();
+                      return s.generateOverdueReport(loans, students, books);
+                    },
+                  ),
                 ),
                 _ReportCard(
                   icon: Icons.monetization_on_rounded,
@@ -156,7 +166,13 @@ class ReportsScreen extends ConsumerWidget {
                   bg: bg,
                   bd: bd,
                   dk: dk,
-                  onTap: () => _showComingSoon(context),
+                  onTap: () =>
+                      _generateReport(context, ref, 'Laporan Denda', (s) async {
+                        final fines = await s.db.getAllFines();
+                        final loans = await s.db.getAllLoans();
+                        final students = await s.db.getAllStudents();
+                        return s.generateFinesReport(fines, loans, students);
+                      }),
                 ),
                 _ReportCard(
                   icon: Icons.analytics_rounded,
@@ -166,21 +182,66 @@ class ReportsScreen extends ConsumerWidget {
                   bg: bg,
                   bd: bd,
                   dk: dk,
-                  onTap: () => _showComingSoon(context),
+                  onTap: () => _generateReport(
+                    context,
+                    ref,
+                    'Laporan Statistik',
+                    (s) async {
+                      final totalBooks = await s.db.getTotalBooks();
+                      final totalStudents = await s.db.getTotalStudents();
+                      final activeLoans = await s.db.getActiveLoansCount();
+                      final overdueLoans = await s.db.getOverdueLoansCount();
+                      final topVisitors = await s.db.getTopVisitors();
+                      return s.generateStatsReport(
+                        totalBooks,
+                        totalStudents,
+                        activeLoans,
+                        overdueLoans,
+                        topVisitors,
+                      );
+                    },
+                  ),
+                ),
+                _ReportCard(
+                  icon: Icons.qr_code_2_rounded,
+                  title: 'Label Barcode',
+                  desc: 'Cetak label buku',
+                  color: AppColors.primary,
+                  bg: bg,
+                  bd: bd,
+                  dk: dk,
+                  onTap: () => _generateReport(
+                    context,
+                    ref,
+                    'Label Barcode Buku',
+                    (s) async {
+                      final books = await s.db.getAllBooks();
+                      return s.generateBookBarcodes(books);
+                    },
+                  ),
+                ),
+                _ReportCard(
+                  icon: Icons.badge_rounded,
+                  title: 'Kartu Anggota',
+                  desc: 'Cetak kartu santri',
+                  color: AppColors.accent,
+                  bg: bg,
+                  bd: bd,
+                  dk: dk,
+                  onTap: () => _generateReport(
+                    context,
+                    ref,
+                    'Kartu Anggota Santri',
+                    (s) async {
+                      final students = await s.db.getAllStudents();
+                      return s.generateStudentCards(students);
+                    },
+                  ),
                 ),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showComingSoon(BuildContext ctx) {
-    ScaffoldMessenger.of(ctx).showSnackBar(
-      const SnackBar(
-        content: Text('Fitur cetak PDF akan tersedia di update berikutnya'),
-        backgroundColor: AppColors.info,
       ),
     );
   }

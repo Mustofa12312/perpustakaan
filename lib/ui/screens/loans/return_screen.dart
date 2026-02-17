@@ -6,11 +6,25 @@ import '../../../core/theme/app_theme.dart';
 import '../../../providers/providers.dart';
 import '../../../data/database/app_database.dart';
 
-class ReturnScreen extends ConsumerWidget {
+class ReturnScreen extends ConsumerStatefulWidget {
   const ReturnScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ReturnScreen> createState() => _ReturnScreenState();
+}
+
+class _ReturnScreenState extends ConsumerState<ReturnScreen> {
+  final _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final dk = Theme.of(context).brightness == Brightness.dark;
     final c1 = dk ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
     final c2 = dk ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
@@ -21,18 +35,60 @@ class ReturnScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Pengembalian Buku',
-            style: GoogleFonts.inter(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              color: c1,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Pengembalian Buku',
+                    style: GoogleFonts.inter(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: c1,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Proses pengembalian dan hitung denda otomatis',
+                    style: GoogleFonts.inter(fontSize: 14, color: c2),
+                  ),
+                ],
+              ),
+              IconButton(
+                onPressed: () =>
+                    ref.invalidate(loansWithDetailsProvider('dipinjam')),
+                icon: Icon(Icons.refresh, color: c2),
+                tooltip: 'Muat Ulang',
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Proses pengembalian dan hitung denda otomatis',
-            style: GoogleFonts.inter(fontSize: 14, color: c2),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _searchController,
+            style: GoogleFonts.inter(color: c1),
+            decoration: InputDecoration(
+              hintText: 'Cari Santri (Nama/NIS) atau Judul Buku...',
+              hintStyle: GoogleFonts.inter(color: c2),
+              prefixIcon: Icon(Icons.search, color: c2),
+              filled: true,
+              fillColor: dk ? AppColors.darkSurface : AppColors.lightSurface,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: dk ? AppColors.darkBorder : AppColors.lightBorder,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: dk ? AppColors.darkBorder : AppColors.lightBorder,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            ),
+            onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
           ),
           const SizedBox(height: 20),
           Expanded(
@@ -46,30 +102,48 @@ class ReturnScreen extends ConsumerWidget {
               ),
               child: loansAsync.when(
                 data: (loans) {
-                  if (loans.isEmpty)
+                  final filtered = loans.where((l) {
+                    if (_query.isEmpty) return true;
+                    return l.studentName.toLowerCase().contains(_query) ||
+                        l.bookTitle.toLowerCase().contains(_query) ||
+                        l.nis.toLowerCase().contains(_query) ||
+                        l.bookCode.toLowerCase().contains(_query);
+                  }).toList();
+
+                  if (filtered.isEmpty) {
+                    if (loans.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.check_circle_outline_rounded,
+                              size: 64,
+                              color: c2,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Tidak ada buku yang sedang dipinjam',
+                              style: GoogleFonts.inter(fontSize: 16, color: c2),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
                     return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.check_circle_outline_rounded,
-                            size: 64,
-                            color: c2,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Tidak ada buku yang sedang dipinjam',
-                            style: GoogleFonts.inter(fontSize: 16, color: c2),
-                          ),
-                        ],
+                      child: Text(
+                        'Tidak ditemukan data untuk "$_query"',
+                        style: GoogleFonts.inter(fontSize: 14, color: c2),
                       ),
                     );
+                  }
+
                   return ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: ListView.builder(
-                      itemCount: loans.length,
+                      itemCount: filtered.length,
                       itemBuilder: (ctx, i) {
-                        final l = loans[i];
+                        final l = filtered[i];
                         final now = DateTime.now();
                         final today = DateTime(now.year, now.month, now.day);
                         final due = DateTime(
