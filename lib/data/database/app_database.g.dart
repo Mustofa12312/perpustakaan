@@ -2813,6 +2813,17 @@ class $AttendancesTable extends Attendances
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _checkOutTimeMeta = const VerificationMeta(
+    'checkOutTime',
+  );
+  @override
+  late final GeneratedColumn<DateTime> checkOutTime = GeneratedColumn<DateTime>(
+    'check_out_time',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _purposeMeta = const VerificationMeta(
     'purpose',
   );
@@ -2825,7 +2836,13 @@ class $AttendancesTable extends Attendances
     requiredDuringInsert: false,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, studentId, checkInTime, purpose];
+  List<GeneratedColumn> get $columns => [
+    id,
+    studentId,
+    checkInTime,
+    checkOutTime,
+    purpose,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2858,6 +2875,15 @@ class $AttendancesTable extends Attendances
         ),
       );
     }
+    if (data.containsKey('check_out_time')) {
+      context.handle(
+        _checkOutTimeMeta,
+        checkOutTime.isAcceptableOrUnknown(
+          data['check_out_time']!,
+          _checkOutTimeMeta,
+        ),
+      );
+    }
     if (data.containsKey('purpose')) {
       context.handle(
         _purposeMeta,
@@ -2885,6 +2911,10 @@ class $AttendancesTable extends Attendances
         DriftSqlType.dateTime,
         data['${effectivePrefix}check_in_time'],
       )!,
+      checkOutTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}check_out_time'],
+      ),
       purpose: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}purpose'],
@@ -2902,11 +2932,13 @@ class Attendance extends DataClass implements Insertable<Attendance> {
   final int id;
   final int studentId;
   final DateTime checkInTime;
+  final DateTime? checkOutTime;
   final String? purpose;
   const Attendance({
     required this.id,
     required this.studentId,
     required this.checkInTime,
+    this.checkOutTime,
     this.purpose,
   });
   @override
@@ -2915,6 +2947,9 @@ class Attendance extends DataClass implements Insertable<Attendance> {
     map['id'] = Variable<int>(id);
     map['student_id'] = Variable<int>(studentId);
     map['check_in_time'] = Variable<DateTime>(checkInTime);
+    if (!nullToAbsent || checkOutTime != null) {
+      map['check_out_time'] = Variable<DateTime>(checkOutTime);
+    }
     if (!nullToAbsent || purpose != null) {
       map['purpose'] = Variable<String>(purpose);
     }
@@ -2926,6 +2961,9 @@ class Attendance extends DataClass implements Insertable<Attendance> {
       id: Value(id),
       studentId: Value(studentId),
       checkInTime: Value(checkInTime),
+      checkOutTime: checkOutTime == null && nullToAbsent
+          ? const Value.absent()
+          : Value(checkOutTime),
       purpose: purpose == null && nullToAbsent
           ? const Value.absent()
           : Value(purpose),
@@ -2941,6 +2979,7 @@ class Attendance extends DataClass implements Insertable<Attendance> {
       id: serializer.fromJson<int>(json['id']),
       studentId: serializer.fromJson<int>(json['studentId']),
       checkInTime: serializer.fromJson<DateTime>(json['checkInTime']),
+      checkOutTime: serializer.fromJson<DateTime?>(json['checkOutTime']),
       purpose: serializer.fromJson<String?>(json['purpose']),
     );
   }
@@ -2951,6 +2990,7 @@ class Attendance extends DataClass implements Insertable<Attendance> {
       'id': serializer.toJson<int>(id),
       'studentId': serializer.toJson<int>(studentId),
       'checkInTime': serializer.toJson<DateTime>(checkInTime),
+      'checkOutTime': serializer.toJson<DateTime?>(checkOutTime),
       'purpose': serializer.toJson<String?>(purpose),
     };
   }
@@ -2959,11 +2999,13 @@ class Attendance extends DataClass implements Insertable<Attendance> {
     int? id,
     int? studentId,
     DateTime? checkInTime,
+    Value<DateTime?> checkOutTime = const Value.absent(),
     Value<String?> purpose = const Value.absent(),
   }) => Attendance(
     id: id ?? this.id,
     studentId: studentId ?? this.studentId,
     checkInTime: checkInTime ?? this.checkInTime,
+    checkOutTime: checkOutTime.present ? checkOutTime.value : this.checkOutTime,
     purpose: purpose.present ? purpose.value : this.purpose,
   );
   Attendance copyWithCompanion(AttendancesCompanion data) {
@@ -2973,6 +3015,9 @@ class Attendance extends DataClass implements Insertable<Attendance> {
       checkInTime: data.checkInTime.present
           ? data.checkInTime.value
           : this.checkInTime,
+      checkOutTime: data.checkOutTime.present
+          ? data.checkOutTime.value
+          : this.checkOutTime,
       purpose: data.purpose.present ? data.purpose.value : this.purpose,
     );
   }
@@ -2983,13 +3028,15 @@ class Attendance extends DataClass implements Insertable<Attendance> {
           ..write('id: $id, ')
           ..write('studentId: $studentId, ')
           ..write('checkInTime: $checkInTime, ')
+          ..write('checkOutTime: $checkOutTime, ')
           ..write('purpose: $purpose')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, studentId, checkInTime, purpose);
+  int get hashCode =>
+      Object.hash(id, studentId, checkInTime, checkOutTime, purpose);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2997,6 +3044,7 @@ class Attendance extends DataClass implements Insertable<Attendance> {
           other.id == this.id &&
           other.studentId == this.studentId &&
           other.checkInTime == this.checkInTime &&
+          other.checkOutTime == this.checkOutTime &&
           other.purpose == this.purpose);
 }
 
@@ -3004,29 +3052,34 @@ class AttendancesCompanion extends UpdateCompanion<Attendance> {
   final Value<int> id;
   final Value<int> studentId;
   final Value<DateTime> checkInTime;
+  final Value<DateTime?> checkOutTime;
   final Value<String?> purpose;
   const AttendancesCompanion({
     this.id = const Value.absent(),
     this.studentId = const Value.absent(),
     this.checkInTime = const Value.absent(),
+    this.checkOutTime = const Value.absent(),
     this.purpose = const Value.absent(),
   });
   AttendancesCompanion.insert({
     this.id = const Value.absent(),
     required int studentId,
     this.checkInTime = const Value.absent(),
+    this.checkOutTime = const Value.absent(),
     this.purpose = const Value.absent(),
   }) : studentId = Value(studentId);
   static Insertable<Attendance> custom({
     Expression<int>? id,
     Expression<int>? studentId,
     Expression<DateTime>? checkInTime,
+    Expression<DateTime>? checkOutTime,
     Expression<String>? purpose,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (studentId != null) 'student_id': studentId,
       if (checkInTime != null) 'check_in_time': checkInTime,
+      if (checkOutTime != null) 'check_out_time': checkOutTime,
       if (purpose != null) 'purpose': purpose,
     });
   }
@@ -3035,12 +3088,14 @@ class AttendancesCompanion extends UpdateCompanion<Attendance> {
     Value<int>? id,
     Value<int>? studentId,
     Value<DateTime>? checkInTime,
+    Value<DateTime?>? checkOutTime,
     Value<String?>? purpose,
   }) {
     return AttendancesCompanion(
       id: id ?? this.id,
       studentId: studentId ?? this.studentId,
       checkInTime: checkInTime ?? this.checkInTime,
+      checkOutTime: checkOutTime ?? this.checkOutTime,
       purpose: purpose ?? this.purpose,
     );
   }
@@ -3057,6 +3112,9 @@ class AttendancesCompanion extends UpdateCompanion<Attendance> {
     if (checkInTime.present) {
       map['check_in_time'] = Variable<DateTime>(checkInTime.value);
     }
+    if (checkOutTime.present) {
+      map['check_out_time'] = Variable<DateTime>(checkOutTime.value);
+    }
     if (purpose.present) {
       map['purpose'] = Variable<String>(purpose.value);
     }
@@ -3069,6 +3127,7 @@ class AttendancesCompanion extends UpdateCompanion<Attendance> {
           ..write('id: $id, ')
           ..write('studentId: $studentId, ')
           ..write('checkInTime: $checkInTime, ')
+          ..write('checkOutTime: $checkOutTime, ')
           ..write('purpose: $purpose')
           ..write(')'))
         .toString();
@@ -5411,6 +5470,7 @@ typedef $$AttendancesTableCreateCompanionBuilder =
       Value<int> id,
       required int studentId,
       Value<DateTime> checkInTime,
+      Value<DateTime?> checkOutTime,
       Value<String?> purpose,
     });
 typedef $$AttendancesTableUpdateCompanionBuilder =
@@ -5418,6 +5478,7 @@ typedef $$AttendancesTableUpdateCompanionBuilder =
       Value<int> id,
       Value<int> studentId,
       Value<DateTime> checkInTime,
+      Value<DateTime?> checkOutTime,
       Value<String?> purpose,
     });
 
@@ -5461,6 +5522,11 @@ class $$AttendancesTableFilterComposer
 
   ColumnFilters<DateTime> get checkInTime => $composableBuilder(
     column: $table.checkInTime,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get checkOutTime => $composableBuilder(
+    column: $table.checkOutTime,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5512,6 +5578,11 @@ class $$AttendancesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get checkOutTime => $composableBuilder(
+    column: $table.checkOutTime,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get purpose => $composableBuilder(
     column: $table.purpose,
     builder: (column) => ColumnOrderings(column),
@@ -5555,6 +5626,11 @@ class $$AttendancesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get checkInTime => $composableBuilder(
     column: $table.checkInTime,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get checkOutTime => $composableBuilder(
+    column: $table.checkOutTime,
     builder: (column) => column,
   );
 
@@ -5616,11 +5692,13 @@ class $$AttendancesTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<int> studentId = const Value.absent(),
                 Value<DateTime> checkInTime = const Value.absent(),
+                Value<DateTime?> checkOutTime = const Value.absent(),
                 Value<String?> purpose = const Value.absent(),
               }) => AttendancesCompanion(
                 id: id,
                 studentId: studentId,
                 checkInTime: checkInTime,
+                checkOutTime: checkOutTime,
                 purpose: purpose,
               ),
           createCompanionCallback:
@@ -5628,11 +5706,13 @@ class $$AttendancesTableTableManager
                 Value<int> id = const Value.absent(),
                 required int studentId,
                 Value<DateTime> checkInTime = const Value.absent(),
+                Value<DateTime?> checkOutTime = const Value.absent(),
                 Value<String?> purpose = const Value.absent(),
               }) => AttendancesCompanion.insert(
                 id: id,
                 studentId: studentId,
                 checkInTime: checkInTime,
+                checkOutTime: checkOutTime,
                 purpose: purpose,
               ),
           withReferenceMapper: (p0) => p0

@@ -26,7 +26,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -105,6 +105,9 @@ class AppDatabase extends _$AppDatabase {
               SettingsCompanion.insert(key: 'theme_mode', value: 'dark'),
             ]);
           });
+        }
+        if (from < 5) {
+          await m.addColumn(attendances, attendances.checkOutTime);
         }
       },
     );
@@ -289,6 +292,63 @@ class AppDatabase extends _$AppDatabase {
   // ==================== ATTENDANCE QUERIES ====================
   Future<int> insertAttendance(AttendancesCompanion entry) =>
       into(attendances).insert(entry);
+
+  Future<AttendanceLogResult> logAttendance(String nis, String purpose) async {
+    return transaction(() async {
+      final student = await (select(
+        students,
+      )..where((s) => s.nis.equals(nis))).getSingleOrNull();
+
+      if (student == null) {
+        return AttendanceLogResult(status: LogStatus.studentNotFound);
+      }
+
+      final now = DateTime.now();
+      final todayStart = DateTime(now.year, now.month, now.day);
+
+      // Check for strictly open session (checked in today, not yet checked out)
+      // If checked in yesterday and forgot, treat as new check in today.
+      final openSession =
+          await (select(attendances)
+                ..where(
+                  (a) =>
+                      a.studentId.equals(student.id) &
+                      a.checkInTime.isBiggerOrEqualValue(todayStart) &
+                      a.checkOutTime.isNull(),
+                )
+                ..orderBy([(a) => OrderingTerm.desc(a.checkInTime)])
+                ..limit(1))
+              .getSingleOrNull();
+
+      if (openSession != null) {
+        // Check Out
+        await (update(attendances)..where((a) => a.id.equals(openSession.id)))
+            .write(AttendancesCompanion(checkOutTime: Value(now)));
+        return AttendanceLogResult(
+          status: LogStatus.checkOutSuccess,
+          student: student,
+          attendance: openSession.copyWith(checkOutTime: Value(now)),
+        );
+      } else {
+        // Check In
+        final id = await into(attendances).insert(
+          AttendancesCompanion.insert(
+            studentId: student.id,
+            checkInTime: Value(now),
+            purpose: Value(purpose),
+          ),
+        );
+        final newRow = await (select(
+          attendances,
+        )..where((a) => a.id.equals(id))).getSingle();
+        return AttendanceLogResult(
+          status: LogStatus.checkInSuccess,
+          student: student,
+          attendance: newRow,
+        );
+      }
+    });
+  }
 
   Future<List<AttendanceWithStudent>> getRecentAttendances() async {
     final query =
@@ -514,4 +574,20 @@ class TopVisitor {
   final Student student;
   final int visitCount;
   TopVisitor({required this.student, required this.visitCount});
+}
+
+enum LogStatus { checkInSuccess, checkOutSuccess, studentNotFound, error }
+
+class AttendanceLogResult {
+  final LogStatus status;
+  final Student? student;
+  final Attendance? attendance;
+  final String? message;
+
+  AttendanceLogResult({
+    required this.status,
+    this.student,
+    this.attendance,
+    this.message,
+  });
 }

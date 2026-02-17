@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:drift/drift.dart' show Value;
 
 import '../../../core/theme/app_theme.dart';
 import '../../../providers/providers.dart';
@@ -22,6 +21,14 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
   bool _isProcessing = false;
   String? _message;
   bool _isError = false;
+  String _selectedPurpose = 'Membaca';
+  final List<String> _purposes = [
+    'Membaca',
+    'Pinjam Buku',
+    'Kembali Buku',
+    'Belajar',
+    'Lainnya',
+  ];
 
   @override
   void dispose() {
@@ -39,22 +46,21 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
 
     try {
       final db = ref.read(databaseProvider);
-      final students = await db.searchStudents(nis);
-      final student = students.firstWhere(
-        (s) => s.nis.toLowerCase() == nis.toLowerCase(),
-        orElse: () => throw 'Santri dengan NIS $nis tidak ditemukan',
-      );
+      final result = await db.logAttendance(nis, _selectedPurpose);
 
-      await db.insertAttendance(
-        AttendancesCompanion.insert(
-          studentId: student.id,
-          checkInTime: Value(DateTime.now()),
-        ),
-      );
+      if (result.status == LogStatus.studentNotFound) {
+        throw 'Santri dengan NIS $nis tidak ditemukan';
+      }
 
       setState(() {
-        _message = 'Berhasil! Selamat datang, ${student.name}';
-        _isError = false;
+        final studentName = result.student?.name ?? '';
+        if (result.status == LogStatus.checkOutSuccess) {
+          _message = 'Sampai Jumpa, $studentName! (Check-Out)';
+          _isError = false;
+        } else {
+          _message = 'Selamat Datang, $studentName! (Check-In)';
+          _isError = false;
+        }
         _nisController.clear();
       });
 
@@ -184,6 +190,53 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                                 ),
                               ),
                               onSubmitted: _submitAttendance,
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              'Tujuan Kunjungan:',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: c2,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Wrap(
+                              alignment: WrapAlignment.center,
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: _purposes.map((p) {
+                                final selected = _selectedPurpose == p;
+                                return ChoiceChip(
+                                  label: Text(
+                                    p,
+                                    style: GoogleFonts.inter(
+                                      color: selected
+                                          ? Colors.white
+                                          : (isDark
+                                                ? Colors.white70
+                                                : Colors.black87),
+                                      fontWeight: selected
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                  selected: selected,
+                                  selectedColor: AppColors.primary,
+                                  backgroundColor: isDark
+                                      ? Colors.black26
+                                      : Colors.white,
+                                  labelStyle: GoogleFonts.inter(
+                                    color: selected ? Colors.white : c1,
+                                  ),
+                                  onSelected: (val) {
+                                    if (val)
+                                      setState(() => _selectedPurpose = p);
+                                    // Keep focus on text field
+                                    _focusNode.requestFocus();
+                                  },
+                                );
+                              }).toList(),
                             ),
                             const SizedBox(height: 24),
                             if (_message != null)
@@ -355,15 +408,40 @@ class _RecentAttendanceList extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          Text(
-                            DateFormat(
-                              'HH:mm',
-                            ).format(item.attendance.checkInTime),
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                DateFormat(
+                                  'HH:mm',
+                                ).format(item.attendance.checkInTime),
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              if (item.attendance.checkOutTime != null)
+                                Text(
+                                  DateFormat(
+                                    'HH:mm',
+                                  ).format(item.attendance.checkOutTime!),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.accent,
+                                  ),
+                                )
+                              else
+                                Text(
+                                  'Aktif',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    color: AppColors.success,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                            ],
                           ),
                         ],
                       ),
