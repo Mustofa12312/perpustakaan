@@ -134,6 +134,19 @@ final dashboardStatsProvider = FutureProvider<DashboardStats>((ref) async {
   );
 });
 
+// Attendance provider
+final recentAttendancesProvider = FutureProvider<List<AttendanceWithStudent>>((
+  ref,
+) {
+  final db = ref.watch(databaseProvider);
+  return db.getRecentAttendances();
+});
+
+final topVisitorsProvider = FutureProvider<List<TopVisitor>>((ref) {
+  final db = ref.watch(databaseProvider);
+  return db.getTopVisitors();
+});
+
 // Settings
 final settingsProvider = FutureProvider<Map<String, String>>((ref) {
   final db = ref.watch(databaseProvider);

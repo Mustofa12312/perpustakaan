@@ -14,6 +14,7 @@ import 'ui/screens/loans/return_screen.dart';
 import 'ui/screens/fines/fine_screen.dart';
 import 'ui/screens/reports/reports_screen.dart';
 import 'ui/screens/settings/settings_screen.dart';
+import 'ui/screens/attendance/attendance_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -66,11 +67,12 @@ class HomeShell extends ConsumerWidget {
       const DashboardScreen(), // 0
       const BookListScreen(), // 1
       const StudentListScreen(), // 2
-      const LoanScreen(), // 3
-      const ReturnScreen(), // 4
-      const FineScreen(), // 5
-      const ReportsScreen(), // 6
-      const SettingsScreen(), // 7
+      const AttendanceScreen(), // 3
+      const LoanScreen(), // 4
+      const ReturnScreen(), // 5
+      const FineScreen(), // 6
+      const ReportsScreen(), // 7
+      const SettingsScreen(), // 8
     ];
 
     return Scaffold(

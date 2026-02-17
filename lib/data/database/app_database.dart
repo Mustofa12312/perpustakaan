@@ -13,23 +13,27 @@ import 'tables/loans.dart';
 import 'tables/fines.dart';
 import 'tables/users.dart';
 import 'tables/settings.dart';
+import 'tables/attendances.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Books, Students, Loans, Fines, Users, Settings])
+@DriftDatabase(
+  tables: [Books, Students, Loans, Fines, Users, Settings, Attendances],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
+
         // Seed default admin user
         await into(users).insert(
           UsersCompanion.insert(
@@ -52,6 +56,56 @@ class AppDatabase extends _$AppDatabase {
             SettingsCompanion.insert(key: 'theme_mode', value: 'dark'),
           ]);
         });
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          await m.createTable(attendances);
+        }
+        if (from < 3) {
+          // Force reset/re-create admin account
+          final hash = _hashPassword('admin123');
+          await customStatement(
+            'INSERT OR REPLACE INTO users (username, password_hash, full_name, role) '
+            "VALUES ('admin', ?, 'Administrator', 'admin')",
+            [hash],
+          );
+        }
+        if (from < 4) {
+          // Hard Reset
+          await m.deleteTable('attendances');
+          await m.deleteTable('fines');
+          await m.deleteTable('loans');
+          await m.deleteTable('books');
+          await m.deleteTable('students');
+          await m.deleteTable('users');
+          await m.deleteTable('settings');
+
+          await m.createAll();
+
+          await into(users).insert(
+            UsersCompanion.insert(
+              username: 'admin',
+              passwordHash: _hashPassword('admin123'),
+              fullName: 'Administrator',
+              role: const Value('admin'),
+            ),
+          );
+          await batch((b) {
+            b.insertAll(settings, [
+              SettingsCompanion.insert(
+                key: 'library_name',
+                value: 'Perpustakaan Pondok Pesantren',
+              ),
+              SettingsCompanion.insert(key: 'loan_duration_days', value: '7'),
+              SettingsCompanion.insert(key: 'fine_per_day', value: '500'),
+              SettingsCompanion.insert(
+                key: 'max_books_per_student',
+                value: '3',
+              ),
+              SettingsCompanion.insert(key: 'theme_mode', value: 'dark'),
+            ]);
+          });
+        }
       },
     );
   }
@@ -232,6 +286,47 @@ class AppDatabase extends _$AppDatabase {
     return {for (var row in rows) row.key: row.value};
   }
 
+  // ==================== ATTENDANCE QUERIES ====================
+  Future<int> insertAttendance(AttendancesCompanion entry) =>
+      into(attendances).insert(entry);
+
+  Future<List<AttendanceWithStudent>> getRecentAttendances() async {
+    final query =
+        select(attendances).join([
+            innerJoin(students, students.id.equalsExp(attendances.studentId)),
+          ])
+          ..orderBy([OrderingTerm.desc(attendances.checkInTime)])
+          ..limit(10);
+
+    final rows = await query.get();
+    return rows.map((row) {
+      return AttendanceWithStudent(
+        attendance: row.readTable(attendances),
+        student: row.readTable(students),
+      );
+    }).toList();
+  }
+
+  Future<List<TopVisitor>> getTopVisitors() async {
+    final count = attendances.id.count();
+    final query = select(students).join([
+      innerJoin(attendances, attendances.studentId.equalsExp(students.id)),
+    ]);
+
+    query.addColumns([count]);
+    query.groupBy([students.id]);
+    query.orderBy([OrderingTerm.desc(count)]);
+    query.limit(5);
+
+    final rows = await query.get();
+    return rows.map((row) {
+      return TopVisitor(
+        student: row.readTable(students),
+        visitCount: row.read(count) ?? 0,
+      );
+    }).toList();
+  }
+
   // ==================== DASHBOARD STATS ====================
   Future<int> getTotalBooks() async {
     final result = await customSelect(
@@ -407,4 +502,16 @@ LazyDatabase _openConnection() {
     final file = File(p.join(dbFolder.path, 'perpustakaan.db'));
     return NativeDatabase.createInBackground(file);
   });
+}
+
+class AttendanceWithStudent {
+  final Attendance attendance;
+  final Student student;
+  AttendanceWithStudent({required this.attendance, required this.student});
+}
+
+class TopVisitor {
+  final Student student;
+  final int visitCount;
+  TopVisitor({required this.student, required this.visitCount});
 }

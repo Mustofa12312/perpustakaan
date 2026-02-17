@@ -108,49 +108,57 @@ class Sidebar extends ConsumerWidget {
                   onTap: () =>
                       ref.read(selectedNavIndexProvider.notifier).select(2),
                 ),
-                const SizedBox(height: 8),
-                _NavSection(label: 'TRANSAKSI', isDark: isDark),
                 _NavItem(
-                  icon: Icons.swap_horiz_rounded,
-                  label: 'Peminjaman',
+                  icon: Icons.assignment_ind_rounded,
+                  label: 'Presensi / Tamu',
                   index: 3,
                   selectedIndex: selectedIndex,
                   onTap: () =>
                       ref.read(selectedNavIndexProvider.notifier).select(3),
                 ),
+                const SizedBox(height: 8),
+                _NavSection(label: 'TRANSAKSI', isDark: isDark),
                 _NavItem(
-                  icon: Icons.assignment_return_rounded,
-                  label: 'Pengembalian',
+                  icon: Icons.swap_horiz_rounded,
+                  label: 'Peminjaman',
                   index: 4,
                   selectedIndex: selectedIndex,
                   onTap: () =>
                       ref.read(selectedNavIndexProvider.notifier).select(4),
                 ),
                 _NavItem(
-                  icon: Icons.monetization_on_rounded,
-                  label: 'Denda',
+                  icon: Icons.assignment_return_rounded,
+                  label: 'Pengembalian',
                   index: 5,
                   selectedIndex: selectedIndex,
                   onTap: () =>
                       ref.read(selectedNavIndexProvider.notifier).select(5),
+                ),
+                _NavItem(
+                  icon: Icons.monetization_on_rounded,
+                  label: 'Denda',
+                  index: 6,
+                  selectedIndex: selectedIndex,
+                  onTap: () =>
+                      ref.read(selectedNavIndexProvider.notifier).select(6),
                 ),
                 const SizedBox(height: 8),
                 _NavSection(label: 'LAINNYA', isDark: isDark),
                 _NavItem(
                   icon: Icons.assessment_rounded,
                   label: 'Laporan',
-                  index: 6,
-                  selectedIndex: selectedIndex,
-                  onTap: () =>
-                      ref.read(selectedNavIndexProvider.notifier).select(6),
-                ),
-                _NavItem(
-                  icon: Icons.settings_rounded,
-                  label: 'Pengaturan',
                   index: 7,
                   selectedIndex: selectedIndex,
                   onTap: () =>
                       ref.read(selectedNavIndexProvider.notifier).select(7),
+                ),
+                _NavItem(
+                  icon: Icons.settings_rounded,
+                  label: 'Pengaturan',
+                  index: 8,
+                  selectedIndex: selectedIndex,
+                  onTap: () =>
+                      ref.read(selectedNavIndexProvider.notifier).select(8),
                 ),
               ],
             ),
