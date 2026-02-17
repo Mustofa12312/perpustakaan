@@ -351,12 +351,16 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<List<AttendanceWithStudent>> getRecentAttendances() async {
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+
     final query =
         select(attendances).join([
             innerJoin(students, students.id.equalsExp(attendances.studentId)),
           ])
+          ..where(attendances.checkInTime.isBiggerOrEqualValue(todayStart))
           ..orderBy([OrderingTerm.desc(attendances.checkInTime)])
-          ..limit(10);
+          ..limit(50); // Increased limit to see all today's movement
 
     final rows = await query.get();
     return rows.map((row) {
@@ -368,10 +372,15 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<List<TopVisitor>> getTopVisitors() async {
+    final now = DateTime.now();
+    final startOfMonth = DateTime(now.year, now.month, 1);
+
     final count = attendances.id.count();
     final query = select(students).join([
       innerJoin(attendances, attendances.studentId.equalsExp(students.id)),
     ]);
+
+    query.where(attendances.checkInTime.isBiggerOrEqualValue(startOfMonth));
 
     query.addColumns([count]);
     query.groupBy([students.id]);

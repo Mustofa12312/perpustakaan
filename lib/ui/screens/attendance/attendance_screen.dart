@@ -38,7 +38,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
   }
 
   Future<void> _submitAttendance(String nis) async {
-    if (nis.isEmpty) return;
+    final cleanNis = nis.trim();
+    if (cleanNis.isEmpty) return;
     setState(() {
       _isProcessing = true;
       _message = null;
@@ -46,7 +47,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
 
     try {
       final db = ref.read(databaseProvider);
-      final result = await db.logAttendance(nis, _selectedPurpose);
+      final result = await db.logAttendance(cleanNis, _selectedPurpose);
 
       if (result.status == LogStatus.studentNotFound) {
         throw 'Santri dengan NIS $nis tidak ditemukan';
@@ -333,7 +334,7 @@ class _RecentAttendanceList extends ConsumerWidget {
                 Icon(Icons.history_rounded, size: 20, color: AppColors.primary),
                 const SizedBox(width: 10),
                 Text(
-                  'Kehadiran Terbaru',
+                  'Kehadiran Hari Ini',
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -488,7 +489,7 @@ class _TopVisitorsChart extends ConsumerWidget {
               Icon(Icons.bar_chart_rounded, size: 20, color: AppColors.accent),
               const SizedBox(width: 10),
               Text(
-                'Santri Paling Sering Hadir (Top 5)',
+                'Santri Paling Rajin (Bulan Ini)',
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
