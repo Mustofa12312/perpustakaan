@@ -29,7 +29,7 @@ jobs:
         run: ls ./build/windows/x64/runner/Release
 
       - name: Compile Inno Setup Script
-        uses: Minionguyjosh/inno-setup-action@v1.2.2
+        uses: dspeciale/inno-setup-action@v3
         with:
           path: windows/installer.iss
 
