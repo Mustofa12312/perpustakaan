@@ -28,10 +28,11 @@ jobs:
       - name: List Release Files
         run: ls ./build/windows/x64/runner/Release
 
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress
+
       - name: Compile Inno Setup Script
-        uses: dspeciale/inno-setup-action@v3
-        with:
-          path: windows/installer.iss
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" windows/installer.iss'
 
       - name: Upload Installer Exe
         uses: actions/upload-artifact@v4
