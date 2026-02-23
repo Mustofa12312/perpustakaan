@@ -11,6 +11,7 @@ OutputBaseFilename=setup_perpustakaan
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
+SetupIconFile=runner\resources\app_icon.ico
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
