@@ -19,17 +19,6 @@ class _BookListScreenState extends ConsumerState<BookListScreen> {
   String _searchQuery = '';
   String _selectedCategory = 'Semua';
 
-  final List<String> _categories = [
-    'Semua',
-    'Fiqih',
-    'Hadits',
-    'Tafsir',
-    'Nahwu/Shorof',
-    'Akhlak',
-    'Sejarah Islam',
-    'Umum',
-  ];
-
   @override
   void dispose() {
     _searchController.dispose();
@@ -42,6 +31,12 @@ class _BookListScreenState extends ConsumerState<BookListScreen> {
     final booksAsync = _searchQuery.isEmpty
         ? ref.watch(booksProvider)
         : ref.watch(bookSearchProvider(_searchQuery));
+
+    final baseCats = ref.watch(categoriesProvider).value ?? [];
+    final _categories = ['Semua', ...baseCats];
+    if (!_categories.contains(_selectedCategory)) {
+      _selectedCategory = 'Semua';
+    }
 
     return Padding(
       padding: const EdgeInsets.all(28),
@@ -497,16 +492,6 @@ class _BookFormDialogState extends ConsumerState<_BookFormDialog> {
   late final TextEditingController _shelfC;
   String _category = 'Umum';
 
-  final List<String> _categories = [
-    'Fiqih',
-    'Hadits',
-    'Tafsir',
-    'Nahwu/Shorof',
-    'Akhlak',
-    'Sejarah Islam',
-    'Umum',
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -538,6 +523,13 @@ class _BookFormDialogState extends ConsumerState<_BookFormDialog> {
   Widget build(BuildContext context) {
     final isEdit = widget.book != null;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final _categories = List<String>.from(
+      ref.watch(categoriesProvider).value ?? [],
+    );
+
+    if (_categories.isNotEmpty && !_categories.contains(_category)) {
+      _categories.add(_category);
+    }
 
     return Dialog(
       child: Container(

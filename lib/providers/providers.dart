@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import '../data/database/app_database.dart';
@@ -165,3 +166,21 @@ final selectedNavIndexProvider =
     NotifierProvider<SelectedNavIndexNotifier, int>(
       SelectedNavIndexNotifier.new,
     );
+
+// Categories
+final categoriesProvider = FutureProvider<List<String>>((ref) async {
+  final db = ref.watch(databaseProvider);
+  final val = await db.getSetting('book_categories');
+  if (val == null || val.isEmpty) {
+    return [
+      'Fiqih',
+      'Hadits',
+      'Tafsir',
+      'Nahwu/Shorof',
+      'Akhlak',
+      'Sejarah Islam',
+      'Umum',
+    ];
+  }
+  return List<String>.from(jsonDecode(val));
+});

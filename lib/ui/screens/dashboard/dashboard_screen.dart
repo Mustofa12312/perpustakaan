@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../providers/providers.dart';
 import '../../widgets/stat_card.dart';
+import 'category_manager_dialog.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -405,6 +406,19 @@ class _QuickActionsCard extends StatelessWidget {
             color: AppColors.primary,
             isDark: isDark,
             onTap: () => ref.read(selectedNavIndexProvider.notifier).select(3),
+          ),
+          const SizedBox(height: 8),
+          _QuickActionButton(
+            icon: Icons.category_rounded,
+            label: 'Kelola Kategori Buku',
+            color: AppColors.accent,
+            isDark: isDark,
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (_) => const CategoryManagerDialog(),
+              );
+            },
           ),
           const SizedBox(height: 8),
           _QuickActionButton(
