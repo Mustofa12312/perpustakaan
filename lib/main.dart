@@ -45,8 +45,20 @@ class PerpustakaanApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     final authState = ref.watch(authProvider);
 
+    ref.listen(settingsProvider, (previous, next) {
+      if (next.hasValue) {
+        final libName =
+            next.value?['library_name'] ?? 'Perpustakaan Pondok Pesantren';
+        windowManager.setTitle(libName);
+      }
+    });
+
+    final libName =
+        ref.watch(settingsProvider).value?['library_name'] ??
+        'Perpustakaan Pondok Pesantren';
+
     return MaterialApp(
-      title: 'Perpustakaan Pondok Pesantren',
+      title: libName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),

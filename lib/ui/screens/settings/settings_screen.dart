@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:csv/csv.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../providers/providers.dart';
 
@@ -162,11 +163,20 @@ class SettingsScreen extends ConsumerWidget {
             dk: dk,
             children: [
               _SettingRow(
-                label: 'Backup database ke file',
+                label: 'Backup Data (Buku/Santri)',
+                dk: dk,
+                trailing: ElevatedButton.icon(
+                  icon: const Icon(Icons.table_chart_rounded, size: 18),
+                  label: const Text('Ekspor CSV'),
+                  onPressed: () => _showExportDialog(context, ref),
+                ),
+              ),
+              _SettingRow(
+                label: 'Backup database (.db)',
                 dk: dk,
                 trailing: ElevatedButton.icon(
                   icon: const Icon(Icons.save_rounded, size: 18),
-                  label: const Text('Backup'),
+                  label: const Text('Backup DB'),
                   onPressed: () => _backup(context, ref),
                 ),
               ),
@@ -229,6 +239,118 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _showExportDialog(BuildContext context, WidgetRef ref) async {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Ekspor Data (CSV)'),
+        content: const Text(
+          'Pilih data yang ingin Anda ekspor untuk dicadangkan atau dibuka di Excel:',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.menu_book_rounded, size: 16),
+            label: const Text('Data Buku'),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _exportToCsv(context, ref, 'buku');
+            },
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.people_rounded, size: 16),
+            label: const Text('Data Santri'),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _exportToCsv(context, ref, 'santri');
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _exportToCsv(
+    BuildContext context,
+    WidgetRef ref,
+    String type,
+  ) async {
+    try {
+      final db = ref.read(databaseProvider);
+      List<List<dynamic>> rows = [];
+
+      if (type == 'buku') {
+        final books = await db.getAllBooks();
+        rows.add([
+          'Kode',
+          'Judul',
+          'Pengarang',
+          'Penerbit',
+          'Tahun',
+          'Kategori',
+          'Total',
+          'Tersedia',
+          'Rak',
+        ]);
+        for (final b in books) {
+          rows.add([
+            b.code,
+            b.title,
+            b.author,
+            b.publisher,
+            b.year,
+            b.category,
+            b.totalQty,
+            b.availableQty,
+            b.shelfLocation,
+          ]);
+        }
+      } else {
+        final students = await db.getAllStudents();
+        rows.add(['NIS', 'Nama', 'Kelas']);
+        for (final s in students) {
+          rows.add([s.nis, s.name, s.classRoom]);
+        }
+      }
+
+      final csvData = CsvCodec().encode(rows);
+      final filename =
+          'ekspor_${type}_${DateTime.now().millisecondsSinceEpoch}.csv';
+
+      final result = await FilePicker.platform.saveFile(
+        dialogTitle: 'Simpan CSV',
+        fileName: filename,
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+      );
+
+      if (result != null) {
+        final file = File(result);
+        await file.writeAsString(csvData);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Berhasil menyimpan data $type!'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal mengekspor data: $e'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _backup(BuildContext ctx, WidgetRef ref) async {

@@ -13,6 +13,12 @@ class Sidebar extends ConsumerWidget {
     final authState = ref.watch(authProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final settings = ref.watch(settingsProvider).value ?? {};
+    final libName = settings['library_name'] ?? 'Perpustakaan Pondok Pesantren';
+    final nameParts = libName.toString().split(' ');
+    final firstName = nameParts.first;
+    final secondName = nameParts.length > 1 ? nameParts.skip(1).join(' ') : '';
+
     return Container(
       width: 260,
       decoration: BoxDecoration(
@@ -51,7 +57,7 @@ class Sidebar extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Perpustakaan',
+                        firstName,
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -60,15 +66,16 @@ class Sidebar extends ConsumerWidget {
                               : AppColors.lightTextPrimary,
                         ),
                       ),
-                      Text(
-                        'Pondok Pesantren',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: isDark
-                              ? AppColors.darkTextSecondary
-                              : AppColors.lightTextSecondary,
+                      if (secondName.isNotEmpty)
+                        Text(
+                          secondName,
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.lightTextSecondary,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),

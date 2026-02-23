@@ -146,23 +146,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             ),
                           ),
                           const SizedBox(height: 28),
-                          Text(
-                            'Perpustakaan',
-                            style: GoogleFonts.inter(
-                              fontSize: 36,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Pondok Pesantren',
-                            style: GoogleFonts.inter(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.white.withAlpha(200),
-                            ),
+                          Consumer(
+                            builder: (context, ref, child) {
+                              final settings =
+                                  ref.watch(settingsProvider).value ?? {};
+                              final libName =
+                                  settings['library_name'] ??
+                                  'Perpustakaan Pondok Pesantren';
+                              final nameParts = libName.toString().split(' ');
+                              final firstName = nameParts.first;
+                              final secondName = nameParts.length > 1
+                                  ? nameParts.skip(1).join(' ')
+                                  : '';
+                              return Column(
+                                children: [
+                                  Text(
+                                    firstName,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                      letterSpacing: -0.5,
+                                    ),
+                                  ),
+                                  if (secondName.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      secondName,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.white.withAlpha(200),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              );
+                            },
                           ),
                           const SizedBox(height: 32),
                           Container(
