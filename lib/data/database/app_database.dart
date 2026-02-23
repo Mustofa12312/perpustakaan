@@ -181,6 +181,32 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
+  Stream<List<Book>> watchBooksFiltered(String query, String category) {
+    var statement = select(books);
+
+    if (category != 'Semua' || query.isNotEmpty) {
+      statement.where((b) {
+        Expression<bool>? expr;
+
+        if (category != 'Semua') {
+          expr = b.category.equals(category);
+        }
+
+        if (query.isNotEmpty) {
+          final lowerQuery = '%${query.toLowerCase()}%';
+          final searchExpr =
+              b.title.lower().like(lowerQuery) |
+              b.author.lower().like(lowerQuery) |
+              b.code.lower().like(lowerQuery);
+          expr = expr == null ? searchExpr : expr & searchExpr;
+        }
+        return expr!;
+      });
+    }
+
+    return (statement..orderBy([(b) => OrderingTerm.asc(b.title)])).watch();
+  }
+
   Future<int> insertBook(BooksCompanion book) => into(books).insert(book);
 
   Future<bool> updateBook(Book book) => update(books).replace(book);
@@ -192,6 +218,16 @@ class AppDatabase extends _$AppDatabase {
       (select(books)..where((b) => b.code.equals(code))).getSingleOrNull();
 
   Future<void> deleteAllBooks() => delete(books).go();
+
+  Future<bool> isCategoryUsed(String category) async {
+    final countExp = books.id.count();
+    final query = selectOnly(books)
+      ..addColumns([countExp])
+      ..where(books.category.equals(category));
+    final result = await query.getSingle();
+    final count = result.read(countExp);
+    return (count ?? 0) > 0;
+  }
 
   // ==================== STUDENT QUERIES ====================
   Future<List<Student>> getAllStudents() =>

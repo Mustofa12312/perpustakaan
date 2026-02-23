@@ -28,9 +28,9 @@ class _BookListScreenState extends ConsumerState<BookListScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final booksAsync = _searchQuery.isEmpty
-        ? ref.watch(booksProvider)
-        : ref.watch(bookSearchProvider(_searchQuery));
+    final booksAsync = ref.watch(
+      booksFilterProvider((query: _searchQuery, category: _selectedCategory)),
+    );
 
     final baseCats = ref.watch(categoriesProvider).value ?? [];
     final _categories = ['Semua', ...baseCats];
@@ -92,16 +92,18 @@ class _BookListScreenState extends ConsumerState<BookListScreen> {
               ),
               const SizedBox(width: 10),
               // Delete all button
-              OutlinedButton.icon(
-                onPressed: () => _deleteAllBooks(context),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.danger,
-                  side: const BorderSide(color: AppColors.danger),
+              if (ref.watch(authProvider).currentUser?.role == 'admin')
+                OutlinedButton.icon(
+                  onPressed: () => _deleteAllBooks(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.danger,
+                    side: const BorderSide(color: AppColors.danger),
+                  ),
+                  icon: const Icon(Icons.delete_sweep_rounded, size: 18),
+                  label: const Text('Hapus Semua'),
                 ),
-                icon: const Icon(Icons.delete_sweep_rounded, size: 18),
-                label: const Text('Hapus Semua'),
-              ),
-              const SizedBox(width: 10),
+              if (ref.watch(authProvider).currentUser?.role == 'admin')
+                const SizedBox(width: 10),
               ElevatedButton.icon(
                 onPressed: () => _showBookForm(context),
                 icon: const Icon(Icons.add_rounded, size: 20),
@@ -176,11 +178,7 @@ class _BookListScreenState extends ConsumerState<BookListScreen> {
               ),
               child: booksAsync.when(
                 data: (books) {
-                  final filtered = _selectedCategory == 'Semua'
-                      ? books
-                      : books
-                            .where((b) => b.category == _selectedCategory)
-                            .toList();
+                  final filtered = books;
 
                   if (filtered.isEmpty) {
                     return Center(
@@ -680,6 +678,23 @@ class _BookFormDialogState extends ConsumerState<_BookFormDialog> {
     final qty = int.tryParse(_qtyC.text) ?? 1;
 
     if (widget.book != null) {
+      final diff = qty - widget.book!.totalQty;
+      final newAvailable = widget.book!.availableQty + diff;
+
+      if (newAvailable < 0) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Total buku tidak boleh lebih kecil dari buku yang sedang dipinjam.',
+              ),
+              backgroundColor: AppColors.danger,
+            ),
+          );
+        }
+        return;
+      }
+
       final updated = widget.book!.copyWith(
         code: _codeC.text.trim(),
         title: _titleC.text.trim(),
@@ -688,7 +703,7 @@ class _BookFormDialogState extends ConsumerState<_BookFormDialog> {
         year: int.tryParse(_yearC.text) ?? 0,
         category: _category,
         totalQty: qty,
-        availableQty: qty - (widget.book!.totalQty - widget.book!.availableQty),
+        availableQty: newAvailable,
         shelfLocation: _shelfC.text.trim(),
       );
       await db.updateBook(updated);

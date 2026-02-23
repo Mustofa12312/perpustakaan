@@ -80,130 +80,173 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFF0D9488),
-                    Color(0xFF0F766E),
-                    Color(0xFF134E4A),
+                    Color(0xFF1E293B), // Slate 800
+                    Color(0xFF0F172A), // Slate 900
                   ],
                 ),
               ),
               child: Stack(
+                fit: StackFit.expand,
                 children: [
-                  // Decorative circles
+                  // Subtle Watermark
                   Positioned(
-                    top: -60,
-                    left: -60,
-                    child: Container(
-                      width: 200,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withAlpha(15),
-                      ),
+                    right: -80,
+                    bottom: -80,
+                    child: Icon(
+                      Icons.account_balance_rounded,
+                      size: 400,
+                      color: Colors.white.withAlpha(10), // Extremely subtle
                     ),
                   ),
+                  // Diagonal decorative lines top left
                   Positioned(
-                    bottom: -100,
-                    right: -50,
-                    child: Container(
-                      width: 300,
-                      height: 300,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withAlpha(10),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 100,
-                    right: 40,
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withAlpha(8),
-                      ),
+                    top: 60,
+                    left: 60,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 2,
+                          color: Colors.white.withAlpha(40),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 12,
+                          height: 2,
+                          color: Colors.white.withAlpha(40),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 4,
+                          height: 2,
+                          color: Colors.white.withAlpha(40),
+                        ),
+                      ],
                     ),
                   ),
                   // Content
                   Center(
                     child: FadeTransition(
                       opacity: _fadeAnim,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 90,
-                            height: 90,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withAlpha(25),
-                              borderRadius: BorderRadius.circular(24),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 100),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withAlpha(15),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Colors.white.withAlpha(30),
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.auto_stories_rounded,
+                                color: Colors.white,
+                                size: 36,
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.local_library_rounded,
-                              color: Colors.white,
-                              size: 48,
-                            ),
-                          ),
-                          const SizedBox(height: 28),
-                          Consumer(
-                            builder: (context, ref, child) {
-                              final settings =
-                                  ref.watch(settingsProvider).value ?? {};
-                              final libName =
-                                  settings['library_name'] ??
-                                  'Perpustakaan Pondok Pesantren';
-                              final nameParts = libName.toString().split(' ');
-                              final firstName = nameParts.first;
-                              final secondName = nameParts.length > 1
-                                  ? nameParts.skip(1).join(' ')
-                                  : '';
-                              return Column(
-                                children: [
-                                  Text(
-                                    firstName,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.white,
-                                      letterSpacing: -0.5,
-                                    ),
-                                  ),
-                                  if (secondName.isNotEmpty) ...[
-                                    const SizedBox(height: 8),
+                            const SizedBox(height: 48),
+                            Consumer(
+                              builder: (context, ref, child) {
+                                final settings =
+                                    ref.watch(settingsProvider).value ?? {};
+                                final libName =
+                                    settings['library_name'] ??
+                                    'Perpustakaan Pondok Pesantren';
+                                final nameParts = libName.toString().split(' ');
+                                final firstName = nameParts.first;
+                                final secondName = nameParts.length > 1
+                                    ? nameParts.skip(1).join(' ')
+                                    : '';
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
                                     Text(
-                                      secondName,
+                                      firstName.toUpperCase(),
                                       style: GoogleFonts.inter(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w400,
-                                        color: Colors.white.withAlpha(200),
+                                        fontSize: 56,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white,
+                                        letterSpacing: -2.0,
+                                        height: 1.1,
                                       ),
                                     ),
+                                    if (secondName.isNotEmpty)
+                                      Text(
+                                        secondName.toUpperCase(),
+                                        style: GoogleFonts.inter(
+                                          fontSize: 56,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.white.withAlpha(200),
+                                          letterSpacing: -2.0,
+                                          height: 1.1,
+                                        ),
+                                      ),
                                   ],
-                                ],
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 32),
-                          Container(
-                            width: 60,
-                            height: 3,
-                            decoration: BoxDecoration(
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 32),
+                            Container(
+                              width: 64,
+                              height: 3,
                               color: Colors.white.withAlpha(80),
-                              borderRadius: BorderRadius.circular(2),
                             ),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'Sistem Manajemen Perpustakaan\nDigital & Terintegrasi',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              color: Colors.white.withAlpha(150),
-                              height: 1.6,
+                            const SizedBox(height: 24),
+                            Text(
+                              'Sistem Informasi Manajemen\nPerpustakaan Digital Terintegrasi',
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                color: Colors.white.withAlpha(160),
+                                height: 1.6,
+                                fontWeight: FontWeight.w400,
+                                letterSpacing: 0.2,
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 48),
+                            SizedBox(
+                              height: 48,
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(
+                                    color: Colors.white.withAlpha(40),
+                                  ),
+                                  foregroundColor: Colors.white,
+                                  backgroundColor: Colors.white.withAlpha(10),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (ctx) => const OpacScreen(),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.search_rounded,
+                                  size: 20,
+                                ),
+                                label: Text(
+                                  'Pencarian Cepat (OPAC)',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -297,15 +340,48 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           const SizedBox(height: 8),
                           TextField(
                             controller: _usernameController,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: isDark
+                                  ? AppColors.darkTextPrimary
+                                  : AppColors.lightTextPrimary,
+                            ),
                             decoration: InputDecoration(
                               hintText: 'Masukkan username',
-                              prefixIcon: const Icon(
-                                Icons.person_outline,
-                                size: 20,
+                              hintStyle: GoogleFonts.inter(
+                                color: isDark
+                                    ? AppColors.darkTextSecondary.withAlpha(150)
+                                    : AppColors.lightTextSecondary.withAlpha(
+                                        150,
+                                      ),
+                                fontSize: 14,
                               ),
-                              prefixIconColor: isDark
-                                  ? AppColors.darkTextSecondary
-                                  : AppColors.lightTextSecondary,
+                              filled: true,
+                              fillColor: isDark
+                                  ? const Color(0xFF1E293B) // Slate 800
+                                  : const Color(0xFFF1F5F9), // Slate 100
+                              prefixIcon: Icon(
+                                Icons.person_outline_rounded,
+                                size: 20,
+                                color: isDark
+                                    ? AppColors.darkTextSecondary
+                                    : AppColors.lightTextSecondary,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: AppColors.primary,
+                                  width: 1.5,
+                                ),
+                              ),
                             ),
                             onSubmitted: (_) => _handleLogin(),
                           ),
@@ -326,21 +402,57 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           TextField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: isDark
+                                  ? AppColors.darkTextPrimary
+                                  : AppColors.lightTextPrimary,
+                            ),
                             decoration: InputDecoration(
                               hintText: 'Masukkan password',
-                              prefixIcon: const Icon(
-                                Icons.lock_outline,
-                                size: 20,
+                              hintStyle: GoogleFonts.inter(
+                                color: isDark
+                                    ? AppColors.darkTextSecondary.withAlpha(150)
+                                    : AppColors.lightTextSecondary.withAlpha(
+                                        150,
+                                      ),
+                                fontSize: 14,
                               ),
-                              prefixIconColor: isDark
-                                  ? AppColors.darkTextSecondary
-                                  : AppColors.lightTextSecondary,
+                              filled: true,
+                              fillColor: isDark
+                                  ? const Color(0xFF1E293B)
+                                  : const Color(0xFFF1F5F9),
+                              prefixIcon: Icon(
+                                Icons.lock_outline_rounded,
+                                size: 20,
+                                color: isDark
+                                    ? AppColors.darkTextSecondary
+                                    : AppColors.lightTextSecondary,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: AppColors.primary,
+                                  width: 1.5,
+                                ),
+                              ),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscurePassword
                                       ? Icons.visibility_off_outlined
                                       : Icons.visibility_outlined,
                                   size: 20,
+                                  color: isDark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.lightTextSecondary,
                                 ),
                                 onPressed: () => setState(
                                   () => _obscurePassword = !_obscurePassword,
@@ -349,24 +461,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             ),
                             onSubmitted: (_) => _handleLogin(),
                           ),
-                          const SizedBox(height: 28),
+                          const SizedBox(height: 32),
 
                           // Login button
                           SizedBox(
-                            height: 48,
+                            height: 52,
                             child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(
+                                  0xFF0F766E,
+                                ), // Teal 700 / Premium Primary
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
                               onPressed: _isLoading ? null : _handleLogin,
                               child: _isLoading
                                   ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
+                                      width: 24,
+                                      height: 24,
                                       child: CircularProgressIndicator(
                                         color: Colors.white,
-                                        strokeWidth: 2,
+                                        strokeWidth: 2.5,
                                       ),
                                     )
                                   : Text(
-                                      'Masuk',
+                                      'Masuk ke Sistem',
                                       style: GoogleFonts.inter(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w700,
@@ -380,10 +502,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: AppColors.info.withAlpha(15),
+                              color: AppColors.info.withAlpha(isDark ? 30 : 15),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: AppColors.info.withAlpha(40),
+                                color: AppColors.info.withAlpha(
+                                  isDark ? 80 : 40,
+                                ),
                               ),
                             ),
                             child: Row(
@@ -399,38 +523,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                     'Default: admin / admin123',
                                     style: GoogleFonts.inter(
                                       fontSize: 12,
-                                      color: AppColors.info,
+                                      color: isDark
+                                          ? const Color(0xFF60A5FA)
+                                          : AppColors.info,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ),
                               ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide(
-                                color: isDark
-                                    ? AppColors.darkBorder
-                                    : AppColors.lightBorder,
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                            ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (ctx) => const OpacScreen(),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.search),
-                            label: Text(
-                              'Pencarian Cepat (OPAC)',
-                              style: GoogleFonts.inter(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
                             ),
                           ),
                         ],

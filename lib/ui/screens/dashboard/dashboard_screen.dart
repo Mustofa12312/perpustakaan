@@ -164,6 +164,15 @@ class _RecentLoansCard extends ConsumerWidget {
         border: Border.all(
           color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withOpacity(0.15)
+                : Colors.black.withOpacity(0.04),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -364,6 +373,15 @@ class _QuickActionsCard extends StatelessWidget {
         border: Border.all(
           color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withOpacity(0.15)
+                : Colors.black.withOpacity(0.04),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -392,7 +410,7 @@ class _QuickActionsCard extends StatelessWidget {
             isDark: isDark,
             onTap: () => ref.read(selectedNavIndexProvider.notifier).select(1),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           _QuickActionButton(
             icon: Icons.person_add_outlined,
             label: 'Tambah Santri Baru',
@@ -400,6 +418,7 @@ class _QuickActionsCard extends StatelessWidget {
             isDark: isDark,
             onTap: () => ref.read(selectedNavIndexProvider.notifier).select(2),
           ),
+          const SizedBox(height: 12),
           _QuickActionButton(
             icon: Icons.assignment_ind_rounded,
             label: 'Presensi / Buku Tamu',
@@ -407,7 +426,7 @@ class _QuickActionsCard extends StatelessWidget {
             isDark: isDark,
             onTap: () => ref.read(selectedNavIndexProvider.notifier).select(3),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           _QuickActionButton(
             icon: Icons.category_rounded,
             label: 'Kelola Kategori Buku',
@@ -420,19 +439,19 @@ class _QuickActionsCard extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           _QuickActionButton(
             icon: Icons.swap_horiz_rounded,
             label: 'Peminjaman Baru',
-            color: AppColors.accent,
+            color: AppColors.warning,
             isDark: isDark,
             onTap: () => ref.read(selectedNavIndexProvider.notifier).select(4),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           _QuickActionButton(
             icon: Icons.assignment_return_rounded,
             label: 'Pengembalian Buku',
-            color: AppColors.info,
+            color: AppColors.success,
             isDark: isDark,
             onTap: () => ref.read(selectedNavIndexProvider.notifier).select(5),
           ),
@@ -442,7 +461,7 @@ class _QuickActionsCard extends StatelessWidget {
   }
 }
 
-class _QuickActionButton extends StatelessWidget {
+class _QuickActionButton extends StatefulWidget {
   final IconData icon;
   final String label;
   final Color color;
@@ -458,50 +477,87 @@ class _QuickActionButton extends StatelessWidget {
   });
 
   @override
+  State<_QuickActionButton> createState() => _QuickActionButtonState();
+}
+
+class _QuickActionButtonState extends State<_QuickActionButton> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkCard : AppColors.lightCard,
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        transform: Matrix4.translationValues(_isHovered ? 6 : 0, 0, 0),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          child: InkWell(
             borderRadius: BorderRadius.circular(10),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withAlpha(20),
-                  borderRadius: BorderRadius.circular(8),
+            onTap: widget.onTap,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: widget.isDark ? AppColors.darkCard : AppColors.lightCard,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: _isHovered
+                      ? widget.color.withOpacity(0.4)
+                      : (widget.isDark
+                            ? AppColors.darkBorder
+                            : AppColors.lightBorder),
+                  width: 1,
                 ),
-                child: Icon(icon, color: color, size: 18),
+                boxShadow: _isHovered
+                    ? [
+                        BoxShadow(
+                          color: widget.color.withOpacity(0.15),
+                          blurRadius: 10,
+                          offset: const Offset(2, 4),
+                        ),
+                      ]
+                    : [],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  label,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: isDark
-                        ? AppColors.darkTextPrimary
-                        : AppColors.lightTextPrimary,
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: widget.color.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(widget.icon, color: widget.color, size: 18),
                   ),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      widget.label,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: _isHovered
+                            ? widget.color
+                            : (widget.isDark
+                                  ? AppColors.darkTextPrimary
+                                  : AppColors.lightTextPrimary),
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 14,
+                    color: _isHovered
+                        ? widget.color
+                        : (widget.isDark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.lightTextSecondary),
+                  ),
+                ],
               ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 14,
-                color: isDark
-                    ? AppColors.darkTextSecondary
-                    : AppColors.lightTextSecondary,
-              ),
-            ],
+            ),
           ),
         ),
       ),

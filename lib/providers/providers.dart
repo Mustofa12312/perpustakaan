@@ -87,6 +87,15 @@ final bookSearchProvider = FutureProvider.family<List<Book>, String>((
   return db.searchBooks(query);
 });
 
+typedef BookFilterParams = ({String query, String category});
+
+final booksFilterProvider = StreamProvider.family<List<Book>, BookFilterParams>(
+  (ref, params) {
+    final db = ref.watch(databaseProvider);
+    return db.watchBooksFiltered(params.query, params.category);
+  },
+);
+
 // Students provider
 final studentsProvider = StreamProvider<List<Student>>((ref) {
   final db = ref.watch(databaseProvider);

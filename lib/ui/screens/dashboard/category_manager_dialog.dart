@@ -48,6 +48,30 @@ class _CategoryManagerDialogState extends ConsumerState<CategoryManagerDialog> {
     List<String> currentCategories,
     String cat,
   ) async {
+    final db = ref.read(databaseProvider);
+    final isUsed = await db.isCategoryUsed(cat);
+
+    if (isUsed) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Gagal Menghapus'),
+            content: Text(
+              'Kategori "$cat" masih digunakan oleh buku. Ubah kategori buku tersebut terlebih dahulu.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
+    }
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
