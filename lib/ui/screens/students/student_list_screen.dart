@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -300,13 +303,18 @@ class _StudentListItem extends StatelessWidget {
             backgroundColor: student.gender == 'L'
                 ? AppColors.info.withAlpha(25)
                 : AppColors.accent.withAlpha(25),
-            child: Icon(
-              student.gender == 'L'
-                  ? Icons.person_rounded
-                  : Icons.person_rounded,
-              color: student.gender == 'L' ? AppColors.info : AppColors.accent,
-              size: 22,
-            ),
+            backgroundImage: student.photo.isNotEmpty
+                ? MemoryImage(base64Decode(student.photo))
+                : null,
+            child: student.photo.isEmpty
+                ? Icon(
+                    Icons.person_rounded,
+                    color: student.gender == 'L'
+                        ? AppColors.info
+                        : AppColors.accent,
+                    size: 22,
+                  )
+                : null,
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -402,6 +410,7 @@ class _StudentFormDialogState extends ConsumerState<_StudentFormDialog> {
   late final TextEditingController _classC;
   String _gender = 'L';
   String _status = 'aktif';
+  String _photoBase64 = '';
 
   @override
   void initState() {
@@ -411,6 +420,26 @@ class _StudentFormDialogState extends ConsumerState<_StudentFormDialog> {
     _classC = TextEditingController(text: widget.student?.classRoom ?? '');
     _gender = widget.student?.gender ?? 'L';
     _status = widget.student?.status ?? 'aktif';
+    _photoBase64 = widget.student?.photo ?? '';
+  }
+
+  Future<void> _pickPhoto() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+    );
+    if (result != null && result.files.single.path != null) {
+      final bytes = await File(result.files.single.path!).readAsBytes();
+      setState(() {
+        _photoBase64 = base64Encode(bytes);
+      });
+    }
+  }
+
+  void _removePhoto() {
+    setState(() {
+      _photoBase64 = '';
+    });
   }
 
   @override
@@ -447,6 +476,52 @@ class _StudentFormDialogState extends ConsumerState<_StudentFormDialog> {
                 ),
               ),
               const SizedBox(height: 24),
+              Center(
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundColor: isDark
+                          ? AppColors.darkBorder
+                          : AppColors.lightBorder,
+                      backgroundImage: _photoBase64.isNotEmpty
+                          ? MemoryImage(base64Decode(_photoBase64))
+                          : null,
+                      child: _photoBase64.isEmpty
+                          ? Icon(
+                              Icons.person_rounded,
+                              size: 40,
+                              color: isDark
+                                  ? AppColors.darkTextSecondary
+                                  : AppColors.lightTextSecondary,
+                            )
+                          : null,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton.icon(
+                          onPressed: _pickPhoto,
+                          icon: const Icon(Icons.camera_alt_rounded, size: 16),
+                          label: Text(
+                            _photoBase64.isEmpty ? 'Tambah Foto' : 'Ganti Foto',
+                          ),
+                        ),
+                        if (_photoBase64.isNotEmpty)
+                          TextButton(
+                            onPressed: _removePhoto,
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.danger,
+                            ),
+                            child: const Text('Hapus'),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _nisC,
                 decoration: InputDecoration(
@@ -546,6 +621,7 @@ class _StudentFormDialogState extends ConsumerState<_StudentFormDialog> {
           classRoom: _classC.text.trim(),
           gender: _gender,
           status: _status,
+          photo: _photoBase64,
         ),
       );
     } else {
@@ -556,6 +632,7 @@ class _StudentFormDialogState extends ConsumerState<_StudentFormDialog> {
           classRoom: drift.Value(_classC.text.trim()),
           gender: drift.Value(_gender),
           status: drift.Value(_status),
+          photo: drift.Value(_photoBase64),
         ),
       );
     }

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -560,13 +561,18 @@ class PdfReportService {
                               width: 70,
                               margin: const pw.EdgeInsets.all(8),
                               color: PdfColors.grey200,
-                              child: pw.Center(
-                                child: pw.Icon(
-                                  const pw.IconData(0xe7fd), // Person
-                                  size: 40,
-                                  color: PdfColors.grey400,
-                                ),
-                              ),
+                              child: s.photo.isNotEmpty
+                                  ? pw.Image(
+                                      pw.MemoryImage(base64Decode(s.photo)),
+                                      fit: pw.BoxFit.cover,
+                                    )
+                                  : pw.Center(
+                                      child: pw.Icon(
+                                        const pw.IconData(0xe7fd), // Person
+                                        size: 40,
+                                        color: PdfColors.grey400,
+                                      ),
+                                    ),
                             ),
                             // Details
                             pw.Expanded(
