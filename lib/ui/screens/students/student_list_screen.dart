@@ -9,6 +9,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../providers/providers.dart';
 import '../../../data/database/app_database.dart';
 import '../../widgets/csv_import_dialog.dart';
+import 'student_detail_dialog.dart';
 
 class StudentListScreen extends ConsumerStatefulWidget {
   const StudentListScreen({super.key});
@@ -169,6 +170,13 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                         return _StudentListItem(
                           student: student,
                           isDark: isDark,
+                          onView: () {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) =>
+                                  StudentDetailDialog(student: student),
+                            );
+                          },
                           onEdit: () =>
                               _showStudentForm(context, student: student),
                           onDelete: () => _deleteStudent(student),
@@ -273,12 +281,14 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
 class _StudentListItem extends StatelessWidget {
   final Student student;
   final bool isDark;
+  final VoidCallback onView;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const _StudentListItem({
     required this.student,
     required this.isDark,
+    required this.onView,
     required this.onEdit,
     required this.onDelete,
   });
@@ -377,6 +387,14 @@ class _StudentListItem extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
+          IconButton(
+            icon: const Icon(Icons.info_outline_rounded, size: 18),
+            color: isDark
+                ? AppColors.darkTextSecondary
+                : AppColors.lightTextSecondary,
+            onPressed: onView,
+            tooltip: 'Detail & Bebas Pustaka',
+          ),
           IconButton(
             icon: const Icon(Icons.edit_rounded, size: 18),
             color: AppColors.info,

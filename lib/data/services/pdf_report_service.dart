@@ -508,6 +508,81 @@ class PdfReportService {
     return pdf.save();
   }
 
+  /// Generate Spine Labels (Label Punggung Buku)
+  Future<Uint8List> generateSpineLabels(List<Book> books) async {
+    final pdf = pw.Document();
+
+    // Convert arbitrary category string to simple DDC logic or first 3 chars
+    // Since we don't have DDC column, we will use Category and Author prefix
+    String getLabelCode(Book b) {
+      final cat = b.category.length >= 3
+          ? b.category.substring(0, 3).toUpperCase()
+          : b.category.toUpperCase();
+      final auth = b.author.length >= 3
+          ? b.author.substring(0, 3).toUpperCase()
+          : b.author.toUpperCase();
+      return '$cat\n$auth';
+    }
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(20),
+        build: (context) {
+          return [
+            pw.Wrap(
+              spacing: 15,
+              runSpacing: 15,
+              children: List.generate(books.length, (index) {
+                final book = books[index];
+                return pw.Container(
+                  width: 50, // Small spine label
+                  height: 70,
+                  padding: const pw.EdgeInsets.all(4),
+                  decoration: pw.BoxDecoration(
+                    border: pw.Border.all(color: PdfColors.black, width: 0.5),
+                  ),
+                  child: pw.Column(
+                    mainAxisAlignment: pw.MainAxisAlignment.center,
+                    children: [
+                      pw.Text(
+                        book.shelfLocation.isNotEmpty
+                            ? book.shelfLocation
+                            : 'RAK',
+                        style: pw.TextStyle(
+                          fontSize: 8,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                        textAlign: pw.TextAlign.center,
+                      ),
+                      pw.Divider(thickness: 0.5),
+                      pw.Text(
+                        getLabelCode(book),
+                        style: pw.TextStyle(
+                          fontSize: 10,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                        textAlign: pw.TextAlign.center,
+                      ),
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        book.code,
+                        style: const pw.TextStyle(fontSize: 6),
+                        textAlign: pw.TextAlign.center,
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ),
+          ];
+        },
+      ),
+    );
+
+    return pdf.save();
+  }
+
   /// Generate Student ID Cards
   Future<Uint8List> generateStudentCards(List<Student> students) async {
     final pdf = pw.Document();

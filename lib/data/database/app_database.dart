@@ -481,11 +481,16 @@ class AppDatabase extends _$AppDatabase {
     }).toList();
   }
 
-  // ==================== RETURN BOOK TRANSACTION ====================
-  Future<void> returnBook(int loanId, int finePerDay) async {
+  // ==================== RETURN / LOST BOOK TRANSACTION ====================
+  Future<void> returnBook(
+    int loanId,
+    int finePerDay, {
+    bool isLost = false,
+    int lostFine = 0,
+  }) async {
     await transaction(() async {
       final loan = await getLoanById(loanId);
-      if (loan == null || loan.status == 'dikembalikan') return;
+      if (loan == null || loan.status != 'dipinjam') return;
 
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
@@ -496,29 +501,53 @@ class AppDatabase extends _$AppDatabase {
       );
       final daysLate = today.difference(due).inDays;
 
-      // Update loan status
-      await (update(loans)..where((l) => l.id.equals(loanId))).write(
-        LoansCompanion(
-          returnDate: Value(now),
-          status: const Value('dikembalikan'),
-        ),
-      );
+      if (isLost) {
+        // Update loan status to 'hilang'
+        await (update(loans)..where((l) => l.id.equals(loanId))).write(
+          LoansCompanion(returnDate: Value(now), status: const Value('hilang')),
+        );
 
-      // Increase book available qty
-      await customStatement(
-        'UPDATE books SET available_qty = available_qty + 1 WHERE id = ?',
-        [loan.bookId],
-      );
+        // Decrease total qty of the book since it's lost
+        await customStatement(
+          'UPDATE books SET total_qty = total_qty - 1 WHERE id = ?',
+          [loan.bookId],
+        );
 
-      // Create fine if late
-      if (daysLate > 0) {
-        await into(fines).insert(
-          FinesCompanion.insert(
-            loanId: loanId,
-            amount: Value(daysLate * finePerDay),
-            daysLate: Value(daysLate),
+        // Add fine for lost book
+        if (lostFine > 0) {
+          await into(fines).insert(
+            FinesCompanion.insert(
+              loanId: loanId,
+              amount: Value(lostFine),
+              daysLate: Value(0),
+            ),
+          );
+        }
+      } else {
+        // Normal return
+        await (update(loans)..where((l) => l.id.equals(loanId))).write(
+          LoansCompanion(
+            returnDate: Value(now),
+            status: const Value('dikembalikan'),
           ),
         );
+
+        // Increase book available qty
+        await customStatement(
+          'UPDATE books SET available_qty = available_qty + 1 WHERE id = ?',
+          [loan.bookId],
+        );
+
+        // Create fine if late
+        if (daysLate > 0) {
+          await into(fines).insert(
+            FinesCompanion.insert(
+              loanId: loanId,
+              amount: Value(daysLate * finePerDay),
+              daysLate: Value(daysLate),
+            ),
+          );
+        }
       }
     });
   }

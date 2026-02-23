@@ -196,6 +196,7 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
                         ),
                         const SizedBox(height: 8),
                         _Picker<Student>(
+                          autofocus: true, // Scanner ready
                           selected: _student,
                           hint: 'Scan Kartu / Ketik NIS...',
                           search: (q) =>
@@ -384,6 +385,8 @@ class _Picker<T> extends StatefulWidget {
   final String Function(T) subLabel;
   final void Function(T) onSelect;
   final VoidCallback onClear;
+  final bool autofocus;
+  final FocusNode? focusNode;
   const _Picker({
     this.selected,
     required this.hint,
@@ -394,6 +397,8 @@ class _Picker<T> extends StatefulWidget {
     required this.subLabel,
     required this.onSelect,
     required this.onClear,
+    this.autofocus = false,
+    this.focusNode,
   });
   @override
   State<_Picker<T>> createState() => _PickerState<T>();
@@ -449,6 +454,8 @@ class _PickerState<T> extends State<_Picker<T>> {
       children: [
         TextField(
           controller: _c,
+          autofocus: widget.autofocus,
+          focusNode: widget.focusNode,
           decoration: InputDecoration(
             hintText: widget.hint,
             prefixIcon: const Icon(Icons.search_rounded, size: 20),

@@ -66,6 +66,7 @@ class _ReturnScreenState extends ConsumerState<ReturnScreen> {
           ),
           const SizedBox(height: 20),
           TextField(
+            autofocus: true,
             controller: _searchController,
             style: GoogleFonts.inter(color: c1),
             decoration: InputDecoration(
@@ -237,27 +238,53 @@ class _ReturnScreenState extends ConsumerState<ReturnScreen> {
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.success,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 10,
+                              Row(
+                                children: [
+                                  ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.danger,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 10,
+                                      ),
+                                    ),
+                                    icon: const Icon(
+                                      Icons.not_interested_rounded,
+                                      size: 18,
+                                    ),
+                                    label: Text(
+                                      'Hilang',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    onPressed: () => _confirmLost(ctx, ref, l),
                                   ),
-                                ),
-                                icon: const Icon(
-                                  Icons.assignment_return_rounded,
-                                  size: 18,
-                                ),
-                                label: Text(
-                                  'Kembalikan',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
+                                  const SizedBox(width: 8),
+                                  ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.success,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 10,
+                                      ),
+                                    ),
+                                    icon: const Icon(
+                                      Icons.assignment_return_rounded,
+                                      size: 18,
+                                    ),
+                                    label: Text(
+                                      'Kembalikan',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    onPressed: () =>
+                                        _confirmReturn(ctx, ref, l, daysLate),
                                   ),
-                                ),
-                                onPressed: () =>
-                                    _confirmReturn(ctx, ref, l, daysLate),
+                                ],
                               ),
                             ],
                           ),
@@ -362,6 +389,96 @@ class _ReturnScreenState extends ConsumerState<ReturnScreen> {
                   : 'Buku berhasil dikembalikan!',
             ),
             backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmLost(
+    BuildContext ctx,
+    WidgetRef ref,
+    LoanWithDetails loan,
+  ) async {
+    final db = ref.read(databaseProvider);
+    final formKey = GlobalKey<FormState>();
+    final amountController = TextEditingController(text: '0');
+
+    if (!ctx.mounted) return;
+    final ok = await showDialog<bool>(
+      context: ctx,
+      builder: (c) => AlertDialog(
+        title: const Text('Buku Hilang / Rusak'),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Buku: ${loan.bookTitle}',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+              ),
+              Text('Santri: ${loan.studentName}'),
+              const SizedBox(height: 12),
+              Text(
+                'Masukan denda penggantian buku (Rp):',
+                style: GoogleFonts.inter(fontSize: 12),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: amountController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  prefixText: 'Rp ',
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Wajib diisi';
+                  if (int.tryParse(value) == null) return 'Harus angka';
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(c, true);
+              }
+            },
+            child: const Text('Proses Hilang'),
+          ),
+        ],
+      ),
+    );
+
+    if (ok == true) {
+      final lostFine = int.parse(amountController.text);
+      await db.returnBook(loan.loanId, 0, isLost: true, lostFine: lostFine);
+      ref.invalidate(loansWithDetailsProvider('dipinjam'));
+      ref.invalidate(loansWithDetailsProvider(null));
+      ref.invalidate(booksProvider);
+      ref.invalidate(activeLoansProvider);
+      ref.invalidate(dashboardStatsProvider);
+      if (ctx.mounted) {
+        ScaffoldMessenger.of(ctx).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Buku ditandai hilang. Denda penggantian: Rp ${NumberFormat('#,###').format(lostFine)}',
+            ),
+            backgroundColor: AppColors.danger,
           ),
         );
       }

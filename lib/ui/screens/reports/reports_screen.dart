@@ -238,6 +238,24 @@ class ReportsScreen extends ConsumerWidget {
                     },
                   ),
                 ),
+                _ReportCard(
+                  icon: Icons.bookmark_added_rounded,
+                  title: 'Label Punggung',
+                  desc: 'Label rak buku klasifikasi',
+                  color: AppColors.info,
+                  bg: bg,
+                  bd: bd,
+                  dk: dk,
+                  onTap: () => _generateReport(
+                    context,
+                    ref,
+                    'Label Punggung Buku',
+                    (s) async {
+                      final books = await s.db.getAllBooks();
+                      return s.generateSpineLabels(books);
+                    },
+                  ),
+                ),
               ],
             ),
           ),

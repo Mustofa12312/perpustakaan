@@ -14,6 +14,6 @@ class Loans extends Table {
   DateTimeColumn get returnDate => dateTime().nullable()();
   TextColumn get status => text().withDefault(
     const Constant('dipinjam'),
-  )(); // dipinjam, dikembalikan, terlambat
+  )(); // dipinjam, dikembalikan, terlambat, hilang
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
