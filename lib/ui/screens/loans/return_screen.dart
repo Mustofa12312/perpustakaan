@@ -44,23 +44,37 @@ class _ReturnScreenState extends ConsumerState<ReturnScreen> {
                   Text(
                     'Pengembalian Buku',
                     style: GoogleFonts.inter(
-                      fontSize: 28,
+                      fontSize: 32,
                       fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
                       color: c1,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
-                    'Proses pengembalian dan hitung denda otomatis',
-                    style: GoogleFonts.inter(fontSize: 14, color: c2),
+                    'Kelola pengembalian aset dan denda keterlambatan dengan mudah',
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      color: c2,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ],
               ),
-              IconButton(
-                onPressed: () =>
-                    ref.invalidate(loansWithDetailsProvider('dipinjam')),
-                icon: Icon(Icons.refresh, color: c2),
-                tooltip: 'Muat Ulang',
+              Container(
+                decoration: BoxDecoration(
+                  color: dk ? AppColors.darkCard : AppColors.lightCard,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: dk ? AppColors.darkBorder : AppColors.lightBorder,
+                  ),
+                ),
+                child: IconButton(
+                  onPressed: () =>
+                      ref.invalidate(loansWithDetailsProvider('dipinjam')),
+                  icon: Icon(Icons.refresh_rounded, color: c1),
+                  tooltip: 'Muat Ulang',
+                ),
               ),
             ],
           ),
@@ -68,26 +82,39 @@ class _ReturnScreenState extends ConsumerState<ReturnScreen> {
           TextField(
             autofocus: true,
             controller: _searchController,
-            style: GoogleFonts.inter(color: c1),
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: dk
+                  ? AppColors.darkTextPrimary
+                  : AppColors.lightTextPrimary,
+            ),
             decoration: InputDecoration(
-              hintText: 'Cari Santri (Nama/NIS) atau Judul Buku...',
-              hintStyle: GoogleFonts.inter(color: c2),
-              prefixIcon: Icon(Icons.search, color: c2),
+              hintText: 'Cari Santri (Nama/NIS) atau Judul/Kode Buku...',
+              hintStyle: GoogleFonts.inter(
+                color: c2.withAlpha(150),
+                fontSize: 15,
+              ),
+              prefixIcon: Icon(Icons.search_rounded, color: c2),
               filled: true,
-              fillColor: dk ? AppColors.darkSurface : AppColors.lightSurface,
+              fillColor: dk
+                  ? const Color(0xFF1E293B)
+                  : const Color(0xFFF1F5F9), // Slate 800 or Slate 100
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: dk ? AppColors.darkBorder : AppColors.lightBorder,
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(
+                  color: AppColors.primary,
+                  width: 1.5,
                 ),
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: dk ? AppColors.darkBorder : AppColors.lightBorder,
-                ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 16,
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             ),
             onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
           ),
@@ -95,11 +122,8 @@ class _ReturnScreenState extends ConsumerState<ReturnScreen> {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: dk ? AppColors.darkSurface : AppColors.lightSurface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: dk ? AppColors.darkBorder : AppColors.lightBorder,
-                ),
+                color: Colors
+                    .transparent, // Background transparent inside expanded, handled by items
               ),
               child: loansAsync.when(
                 data: (loans) {
@@ -139,158 +163,236 @@ class _ReturnScreenState extends ConsumerState<ReturnScreen> {
                     );
                   }
 
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: ListView.builder(
-                      itemCount: filtered.length,
-                      itemBuilder: (ctx, i) {
-                        final l = filtered[i];
-                        final now = DateTime.now();
-                        final today = DateTime(now.year, now.month, now.day);
-                        final due = DateTime(
-                          l.dueDate.year,
-                          l.dueDate.month,
-                          l.dueDate.day,
-                        );
-                        final daysLate = today.difference(due).inDays;
-                        final late = daysLate > 0;
-                        return Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(
-                                color: dk
-                                    ? AppColors.darkBorder.withAlpha(100)
-                                    : AppColors.lightBorder,
-                              ),
-                            ),
+                  return ListView.separated(
+                    padding: const EdgeInsets.only(top: 8, bottom: 24),
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (ctx, i) {
+                      final l = filtered[i];
+                      final now = DateTime.now();
+                      final today = DateTime(now.year, now.month, now.day);
+                      final due = DateTime(
+                        l.dueDate.year,
+                        l.dueDate.month,
+                        l.dueDate.day,
+                      );
+                      final daysLate = today.difference(due).inDays;
+                      final late = daysLate > 0;
+                      return Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: dk ? AppColors.darkCard : AppColors.lightCard,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: dk
+                                ? AppColors.darkBorder
+                                : AppColors.lightBorder,
                           ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color:
-                                      (late
-                                              ? AppColors.danger
-                                              : AppColors.accent)
-                                          .withAlpha(20),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(
-                                  late
-                                      ? Icons.warning_rounded
-                                      : Icons.menu_book_rounded,
-                                  color: late
-                                      ? AppColors.danger
-                                      : AppColors.accent,
-                                  size: 24,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      l.bookTitle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(dk ? 20 : 5),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            // Peminjam Info
+                            Expanded(
+                              flex: 2,
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 24,
+                                    backgroundColor: AppColors.primary
+                                        .withAlpha(dk ? 40 : 25),
+                                    child: Text(
+                                      l.studentName.isNotEmpty
+                                          ? l.studentName
+                                                .substring(0, 1)
+                                                .toUpperCase()
+                                          : '?',
                                       style: GoogleFonts.inter(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: c1,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primary,
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${l.studentName} • ${l.nis}',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 12,
-                                        color: c2,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        _Tag(
-                                          'Pinjam: ${DateFormat('dd/MM').format(l.loanDate)}',
-                                          AppColors.info,
-                                          dk,
-                                        ),
-                                        const SizedBox(width: 6),
-                                        _Tag(
-                                          'Batas: ${DateFormat('dd/MM').format(l.dueDate)}',
-                                          late
-                                              ? AppColors.danger
-                                              : AppColors.success,
-                                          dk,
-                                        ),
-                                        if (late) ...[
-                                          const SizedBox(width: 6),
-                                          _Tag(
-                                            'Terlambat $daysLate hari',
-                                            AppColors.danger,
-                                            dk,
+                                        Text(
+                                          'PEMINJAM:',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: c2,
+                                            letterSpacing: 0.5,
                                           ),
-                                        ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          l.studentName,
+                                          style: GoogleFonts.inter(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                            color: c1,
+                                            letterSpacing: -0.3,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Text(
+                                          'NIS: ${l.nis}',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 13,
+                                            color: c2,
+                                          ),
+                                        ),
                                       ],
                                     ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Row(
-                                children: [
-                                  ElevatedButton.icon(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.danger,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 10,
-                                      ),
-                                    ),
-                                    icon: const Icon(
-                                      Icons.not_interested_rounded,
-                                      size: 18,
-                                    ),
-                                    label: Text(
-                                      'Hilang',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    onPressed: () => _confirmLost(ctx, ref, l),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  ElevatedButton.icon(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.success,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 10,
-                                      ),
-                                    ),
-                                    icon: const Icon(
-                                      Icons.assignment_return_rounded,
-                                      size: 18,
-                                    ),
-                                    label: Text(
-                                      'Kembalikan',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    onPressed: () =>
-                                        _confirmReturn(ctx, ref, l, daysLate),
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                            ),
+                            // Divider
+                            Container(
+                              width: 1,
+                              height: 50,
+                              color: dk ? Colors.white12 : Colors.black12,
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                            ),
+                            // Book Info
+                            Expanded(
+                              flex: 3,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        late
+                                            ? Icons.warning_rounded
+                                            : Icons.menu_book_rounded,
+                                        color: late
+                                            ? AppColors.danger
+                                            : AppColors.accent,
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          l.bookTitle,
+                                          style: GoogleFonts.inter(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w700,
+                                            color: c1,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      _Tag(
+                                        'Pinjam: ${DateFormat('dd MMM yyyy, HH:mm').format(l.loanDate.toLocal())}',
+                                        AppColors.info,
+                                        dk,
+                                      ),
+                                      _Tag(
+                                        'Tenggat: ${DateFormat('dd MMM yyyy, HH:mm').format(l.dueDate.toLocal())}',
+                                        late
+                                            ? AppColors.danger
+                                            : AppColors.success,
+                                        dk,
+                                      ),
+                                      if (late)
+                                        _Tag(
+                                          'Terlambat $daysLate Hari',
+                                          AppColors.danger,
+                                          dk,
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.danger.withAlpha(
+                                      20,
+                                    ),
+                                    foregroundColor: AppColors.danger,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  icon: const Icon(
+                                    Icons.warning_amber_rounded,
+                                    size: 18,
+                                  ),
+                                  label: Text(
+                                    'Hilang',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  onPressed: () => _confirmLost(ctx, ref, l),
+                                ),
+                                const SizedBox(width: 8),
+                                ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  icon: const Icon(
+                                    Icons.assignment_return_rounded,
+                                    size: 18,
+                                  ),
+                                  label: Text(
+                                    'Kembalikan',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  onPressed: () =>
+                                      _confirmReturn(ctx, ref, l, daysLate),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),

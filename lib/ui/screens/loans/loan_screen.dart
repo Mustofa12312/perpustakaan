@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../providers/providers.dart';
 import '../../../data/database/app_database.dart';
+import 'package:drift/drift.dart' hide Column;
 
 class LoanScreen extends ConsumerStatefulWidget {
   const LoanScreen({super.key});
@@ -97,6 +98,7 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
           studentId: _student!.id,
           bookId: _book!.id,
           userId: auth.currentUser?.id ?? 1,
+          loanDate: Value(now),
           dueDate: due,
         ),
       );

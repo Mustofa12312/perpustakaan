@@ -160,17 +160,22 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Daftar Hadir (Visitor)',
+                    'Rekam Kehadiran',
                     style: GoogleFonts.inter(
-                      fontSize: 28,
+                      fontSize: 32,
                       fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
                       color: c1,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
-                    'Scan kartu santri atau ketik NIS untuk mencatat kehadiran',
-                    style: GoogleFonts.inter(fontSize: 14, color: c2),
+                    'Silakan scan barcode pada kartu santri atau ketik NIS secara manual',
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      color: c2,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ],
               ),
@@ -187,33 +192,49 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                   child: Column(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(32),
+                        padding: const EdgeInsets.all(40),
                         decoration: BoxDecoration(
-                          color: bg,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: bd),
+                          color: isDark
+                              ? AppColors.darkCard
+                              : AppColors.lightCard,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: isDark
+                                ? AppColors.darkBorder
+                                : AppColors.lightBorder,
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withAlpha(isDark ? 20 : 5),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
+                              color: Colors.black.withAlpha(isDark ? 40 : 10),
+                              blurRadius: 32,
+                              offset: const Offset(0, 16),
                             ),
                           ],
                         ),
                         child: Column(
                           children: [
-                            Icon(
-                              Icons.qr_code_scanner_rounded,
-                              size: 64,
-                              color: AppColors.primary,
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withAlpha(
+                                  isDark ? 30 : 15,
+                                ),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.qr_code_scanner_rounded,
+                                size: 56,
+                                color: AppColors.primary,
+                              ),
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 32),
                             Text(
-                              'Silakan Scan Barcode / Ketik Nama',
+                              'Scan Barcode / Ketik Nama',
                               style: GoogleFonts.inter(
-                                fontSize: 18,
+                                fontSize: 20,
                                 fontWeight: FontWeight.w700,
                                 color: c1,
+                                letterSpacing: -0.5,
                               ),
                             ),
                             const SizedBox(height: 24),
@@ -223,30 +244,40 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                               autofocus: true,
                               textAlign: TextAlign.center,
                               style: GoogleFonts.inter(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 2,
+                                fontSize: 28,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 4,
+                                color: isDark
+                                    ? AppColors.darkTextPrimary
+                                    : AppColors.lightTextPrimary,
                               ),
                               decoration: InputDecoration(
                                 hintText: _isProcessing
-                                    ? 'Memproses...'
-                                    : 'NIS / Nama Santri',
+                                    ? 'MEMPROSES...'
+                                    : 'NIS / NAMA',
                                 hintStyle: GoogleFonts.inter(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w500,
-                                  letterSpacing: 1,
-                                  color: c2.withAlpha(100),
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 4,
+                                  color: c2.withAlpha(120),
                                 ),
                                 contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 20,
+                                  vertical: 24,
                                 ),
                                 filled: true,
                                 fillColor: isDark
-                                    ? Colors.black26
-                                    : Colors.grey[100],
+                                    ? const Color(0xFF1E293B) // Slate 800
+                                    : const Color(0xFFF1F5F9), // Slate 100
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
                                   borderSide: BorderSide.none,
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(
+                                    color: AppColors.primary,
+                                    width: 2,
+                                  ),
                                 ),
                               ),
                               onSubmitted: _submitAttendance,
@@ -329,32 +360,47 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                                   },
                                 ),
                               ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 16),
                             TextButton.icon(
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
                               onPressed: _showSearchDialog,
-                              icon: Icon(Icons.search_rounded, color: c2),
+                              icon: Icon(
+                                Icons.person_search_rounded,
+                                color: AppColors.primary,
+                                size: 20,
+                              ),
                               label: Text(
                                 'Cari Siswa Manual (Nama/NIS)',
                                 style: GoogleFonts.inter(
-                                  color: c2,
+                                  color: AppColors.primary,
                                   fontWeight: FontWeight.w600,
+                                  fontSize: 14,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 32),
                             Text(
-                              'Tujuan Kunjungan:',
+                              'Tujuan Kunjungan Terpilih',
                               style: GoogleFonts.inter(
-                                fontSize: 14,
+                                fontSize: 13,
                                 color: c2,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 16),
                             Wrap(
                               alignment: WrapAlignment.center,
-                              spacing: 8,
-                              runSpacing: 8,
+                              spacing: 12,
+                              runSpacing: 12,
                               children: _purposes.map((p) {
                                 final selected = _selectedPurpose == p;
                                 return ChoiceChip(
@@ -368,14 +414,30 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                                                 : Colors.black87),
                                       fontWeight: selected
                                           ? FontWeight.w600
-                                          : FontWeight.normal,
+                                          : FontWeight.w500,
+                                      fontSize: 14,
                                     ),
                                   ),
                                   selected: selected,
                                   selectedColor: AppColors.primary,
                                   backgroundColor: isDark
-                                      ? Colors.black26
-                                      : Colors.white,
+                                      ? const Color(0xFF1E293B)
+                                      : const Color(0xFFF1F5F9),
+                                  side: BorderSide(
+                                    color: selected
+                                        ? AppColors.primary
+                                        : (isDark
+                                              ? Colors.white12
+                                              : Colors.black12),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  showCheckmark: false,
                                   labelStyle: GoogleFonts.inter(
                                     color: selected ? Colors.white : c1,
                                   ),
@@ -464,36 +526,57 @@ class _RecentAttendanceList extends ConsumerWidget {
     final c2 = isDark
         ? AppColors.darkTextSecondary
         : AppColors.lightTextSecondary;
-    final bg = isDark ? AppColors.darkSurface : AppColors.lightSurface;
     final bd = isDark ? AppColors.darkBorder : AppColors.lightBorder;
 
     return Container(
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(20),
+        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: bd),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(isDark ? 20 : 5),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             child: Row(
               children: [
-                Icon(Icons.history_rounded, size: 20, color: AppColors.primary),
-                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withAlpha(isDark ? 40 : 20),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.history_rounded,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 16),
                 Text(
                   'Kehadiran Hari Ini',
                   style: GoogleFonts.inter(
-                    fontSize: 16,
+                    fontSize: 18,
                     fontWeight: FontWeight.w700,
+                    letterSpacing: -0.5,
                     color: c1,
                   ),
                 ),
               ],
             ),
           ),
-          const Divider(height: 1),
+          Divider(
+            height: 1,
+            color: isDark ? Colors.white10 : Colors.black.withAlpha(10),
+          ),
           Expanded(
             child: recentAsync.when(
               data: (items) {
@@ -512,28 +595,33 @@ class _RecentAttendanceList extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final item = items[index];
                     return Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: isDark
-                            ? AppColors.darkCard
-                            : AppColors.lightCard,
-                        borderRadius: BorderRadius.circular(12),
+                            ? const Color(0xFF1E293B)
+                            : const Color(0xFFF8FAFC), // Slate 800 or Slate 50
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark ? Colors.white12 : Colors.transparent,
+                        ),
                       ),
                       child: Row(
                         children: [
                           CircleAvatar(
-                            radius: 18,
-                            backgroundColor: AppColors.primary.withAlpha(20),
+                            radius: 20,
+                            backgroundColor: AppColors.primary.withAlpha(
+                              isDark ? 40 : 25,
+                            ),
                             child: Text(
                               item.student.name.substring(0, 1).toUpperCase(),
                               style: GoogleFonts.inter(
-                                fontSize: 12,
+                                fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.primary,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -541,17 +629,19 @@ class _RecentAttendanceList extends ConsumerWidget {
                                 Text(
                                   item.student.name,
                                   style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
                                     color: c1,
+                                    letterSpacing: -0.2,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
+                                const SizedBox(height: 2),
                                 Text(
                                   item.student.nis,
                                   style: GoogleFonts.inter(
-                                    fontSize: 11,
+                                    fontSize: 12,
                                     color: c2,
                                   ),
                                 ),
@@ -561,36 +651,60 @@ class _RecentAttendanceList extends ConsumerWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text(
-                                DateFormat(
-                                  'HH:mm',
-                                ).format(item.attendance.checkInTime),
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.primary,
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
                                 ),
-                              ),
-                              if (item.attendance.checkOutTime != null)
-                                Text(
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withAlpha(25),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
                                   DateFormat(
                                     'HH:mm',
-                                  ).format(item.attendance.checkOutTime!),
+                                  ).format(item.attendance.checkInTime),
                                   style: GoogleFonts.inter(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
-                                    color: AppColors.accent,
+                                    color: AppColors.primary,
                                   ),
-                                )
-                              else
+                                ),
+                              ),
+                              if (item.attendance.checkOutTime != null) ...[
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.accent.withAlpha(25),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    DateFormat(
+                                      'HH:mm',
+                                    ).format(item.attendance.checkOutTime!),
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.accent,
+                                    ),
+                                  ),
+                                ),
+                              ] else ...[
+                                const SizedBox(height: 6),
                                 Text(
                                   'Aktif',
                                   style: GoogleFonts.inter(
-                                    fontSize: 10,
+                                    fontSize: 12,
                                     color: AppColors.success,
                                     fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.5,
                                   ),
                                 ),
+                              ],
                             ],
                           ),
                         ],
@@ -620,28 +734,46 @@ class _TopVisitorsChart extends ConsumerWidget {
     final c2 = isDark
         ? AppColors.darkTextSecondary
         : AppColors.lightTextSecondary;
-    final bg = isDark ? AppColors.darkSurface : AppColors.lightSurface;
     final bd = isDark ? AppColors.darkBorder : AppColors.lightBorder;
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(20),
+        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: bd),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(isDark ? 20 : 5),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.bar_chart_rounded, size: 20, color: AppColors.accent),
-              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withAlpha(isDark ? 40 : 20),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.bar_chart_rounded,
+                  size: 20,
+                  color: AppColors.accent,
+                ),
+              ),
+              const SizedBox(width: 16),
               Text(
                 'Santri Paling Rajin (Bulan Ini)',
                 style: GoogleFonts.inter(
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.w700,
+                  letterSpacing: -0.5,
                   color: c1,
                 ),
               ),

@@ -462,12 +462,9 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<int> getOverdueLoansCount() async {
-    final now = DateTime.now().toIso8601String();
-    final result = await customSelect(
-      'SELECT COUNT(*) as total FROM loans WHERE status = ? AND due_date < ?',
-      variables: [Variable.withString('dipinjam'), Variable.withString(now)],
-    ).getSingle();
-    return result.read<int>('total');
+    final active = await getLoansWithDetails(status: 'dipinjam');
+    final now = DateTime.now();
+    return active.where((l) => l.dueDate.isBefore(now)).length;
   }
 
   // ==================== LOAN WITH DETAILS ====================
@@ -493,13 +490,38 @@ class AppDatabase extends _$AppDatabase {
     final results = await customSelect(query, variables: variables).get();
 
     return results.map((row) {
+      DateTime? parseOptionalDate(String key) {
+        dynamic rawVal;
+        try {
+          rawVal = row.readNullable<int>(key);
+        } catch (_) {
+          try {
+            rawVal = row.readNullable<String>(key);
+          } catch (_) {}
+        }
+
+        if (rawVal == null) return null;
+        if (rawVal is int) {
+          return DateTime.fromMillisecondsSinceEpoch(rawVal * 1000).toLocal();
+        } else if (rawVal is String) {
+          final dateStr = rawVal;
+          if (!dateStr.contains('T') && !dateStr.contains('Z')) {
+            // Came from SQLite CURRENT_TIMESTAMP (UTC, formatted like '2024-02-24 10:00:00')
+            return DateTime.parse('${dateStr.replaceAll(' ', 'T')}Z').toLocal();
+          }
+          return DateTime.parse(dateStr).toLocal();
+        }
+        return null;
+      }
+
+      DateTime parseDate(String key) =>
+          parseOptionalDate(key) ?? DateTime.now();
+
       return LoanWithDetails(
         loanId: row.read<int>('loan_id'),
-        loanDate: DateTime.parse(row.read<String>('loan_date')),
-        dueDate: DateTime.parse(row.read<String>('due_date')),
-        returnDate: row.readNullable<String>('return_date') != null
-            ? DateTime.parse(row.read<String>('return_date'))
-            : null,
+        loanDate: parseDate('loan_date'),
+        dueDate: parseDate('due_date'),
+        returnDate: parseOptionalDate('return_date'),
         loanStatus: row.read<String>('loan_status'),
         studentId: row.read<int>('student_id'),
         nis: row.read<String>('nis'),

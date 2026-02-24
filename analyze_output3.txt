@@ -1,0 +1,45 @@
+Analyzing perputakaanc...                                       
+
+   info • Unnecessary use of multiple underscores • lib/ui/screens/attendance/attendance_screen.dart:319:57 • unnecessary_underscores
+   info • Statements in an if should be enclosed in a block • lib/ui/screens/attendance/attendance_screen.dart:446:39 • curly_braces_in_flow_control_structures
+   info • Unnecessary use of multiple underscores • lib/ui/screens/attendance/attendance_screen.dart:594:41 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/ui/screens/attendance/attendance_screen.dart:1045:47 • unnecessary_underscores
+   info • The local variable '_categories' starts with an underscore • lib/ui/screens/books/book_list_screen.dart:36:11 • no_leading_underscores_for_local_identifiers
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/ui/screens/books/book_list_screen.dart:143:19 • deprecated_member_use
+   info • The local variable '_categories' starts with an underscore • lib/ui/screens/books/book_list_screen.dart:524:11 • no_leading_underscores_for_local_identifiers
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/ui/screens/books/book_list_screen.dart:566:25 • deprecated_member_use
+   info • Don't use 'BuildContext's across async gaps • lib/ui/screens/dashboard/category_manager_dialog.dart:76:7 • use_build_context_synchronously
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/screens/dashboard/dashboard_screen.dart:170:32 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/screens/dashboard/dashboard_screen.dart:171:32 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/screens/dashboard/dashboard_screen.dart:379:32 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/screens/dashboard/dashboard_screen.dart:380:32 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/screens/dashboard/dashboard_screen.dart:508:38 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/screens/dashboard/dashboard_screen.dart:517:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/screens/dashboard/dashboard_screen.dart:529:43 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/ui/screens/fines/fine_screen.dart:52:21 • curly_braces_in_flow_control_structures
+   info • The local variable '_checkPwd' starts with an underscore • lib/ui/screens/opac_screen.dart:61:26 • no_leading_underscores_for_local_identifiers
+   info • Don't use 'BuildContext's across async gaps • lib/ui/screens/opac_screen.dart:79:31 • use_build_context_synchronously
+   info • 'onPopInvoked' is deprecated and shouldn't be used. Use onPopInvokedWithResult instead. This feature was deprecated after v3.22.0-12.0.pre • lib/ui/screens/opac_screen.dart:153:7 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/screens/reports/reports_screen.dart:310:44 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/screens/reports/reports_screen.dart:373:46 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/screens/reports/reports_screen.dart:379:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/screens/reports/reports_screen.dart:387:40 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/screens/reports/reports_screen.dart:388:40 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/screens/reports/reports_screen.dart:400:38 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/screens/reports/reports_screen.dart:401:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/screens/reports/reports_screen.dart:402:42 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/screens/reports/reports_screen.dart:411:43 • deprecated_member_use
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/ui/screens/settings/settings_screen.dart:56:19 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/ui/screens/settings/settings_screen.dart:367:11 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/ui/screens/settings/settings_screen.dart:376:9 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/ui/screens/settings/settings_screen.dart:396:11 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/ui/screens/settings/settings_screen.dart:405:9 • curly_braces_in_flow_control_structures
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/ui/screens/students/student_list_screen.dart:576:23 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/ui/screens/students/student_list_screen.dart:591:23 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/widgets/stat_card.dart:46:46 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/widgets/stat_card.dart:52:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/widgets/stat_card.dart:60:40 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/widgets/stat_card.dart:61:40 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/widgets/stat_card.dart:75:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/ui/widgets/stat_card.dart:88:43 • deprecated_member_use
+
