@@ -363,22 +363,24 @@ class SettingsScreen extends ConsumerWidget {
       );
       if (result != null) {
         await File(dbPath).copy(result);
-        if (ctx.mounted)
+        if (ctx.mounted) {
           ScaffoldMessenger.of(ctx).showSnackBar(
             const SnackBar(
               content: Text('Backup berhasil!'),
               backgroundColor: AppColors.success,
             ),
           );
+        }
       }
     } catch (e) {
-      if (ctx.mounted)
+      if (ctx.mounted) {
         ScaffoldMessenger.of(ctx).showSnackBar(
           SnackBar(
             content: Text('Gagal backup: $e'),
             backgroundColor: AppColors.danger,
           ),
         );
+      }
     }
   }
 
@@ -392,22 +394,24 @@ class SettingsScreen extends ConsumerWidget {
         final db = ref.read(databaseProvider);
         final dbPath = await db.getDatabasePath();
         await File(result.files.single.path!).copy(dbPath);
-        if (ctx.mounted)
+        if (ctx.mounted) {
           ScaffoldMessenger.of(ctx).showSnackBar(
             const SnackBar(
               content: Text('Restore berhasil! Restart aplikasi.'),
               backgroundColor: AppColors.success,
             ),
           );
+        }
       }
     } catch (e) {
-      if (ctx.mounted)
+      if (ctx.mounted) {
         ScaffoldMessenger.of(ctx).showSnackBar(
           SnackBar(
             content: Text('Gagal restore: $e'),
             backgroundColor: AppColors.danger,
           ),
         );
+      }
     }
   }
 

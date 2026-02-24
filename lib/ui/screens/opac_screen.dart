@@ -76,7 +76,7 @@ class _OpacScreenState extends ConsumerState<OpacScreen> {
               }
 
               if (isValid) {
-                Navigator.pop(ctx);
+                if (ctx.mounted) Navigator.pop(ctx);
                 if (mounted) Navigator.pop(context);
               } else {
                 setState(() => isError = true);
@@ -150,7 +150,7 @@ class _OpacScreenState extends ConsumerState<OpacScreen> {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         _promptExitOpac();
       },

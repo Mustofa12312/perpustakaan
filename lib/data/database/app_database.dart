@@ -26,7 +26,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -108,6 +108,33 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 5) {
           await m.addColumn(attendances, attendances.checkOutTime);
+        }
+        if (from < 6) {
+          final tables = [
+            'loans',
+            'fines',
+            'users',
+            'students',
+            'books',
+            'attendances',
+          ];
+          for (final t in tables) {
+            await customStatement(
+              "UPDATE $t SET created_at = CAST(strftime('%s', created_at) AS INTEGER) WHERE typeof(created_at) = 'text'",
+            );
+          }
+          await customStatement(
+            "UPDATE loans SET loan_date = CAST(strftime('%s', loan_date) AS INTEGER), due_date = CAST(strftime('%s', due_date) AS INTEGER) WHERE typeof(loan_date) = 'text' OR typeof(due_date) = 'text'",
+          );
+          await customStatement(
+            "UPDATE loans SET return_date = CAST(strftime('%s', return_date) AS INTEGER) WHERE return_date IS NOT NULL AND typeof(return_date) = 'text'",
+          );
+          await customStatement(
+            "UPDATE attendances SET check_in_time = CAST(strftime('%s', check_in_time) AS INTEGER) WHERE typeof(check_in_time) = 'text'",
+          );
+          await customStatement(
+            "UPDATE attendances SET check_out_time = CAST(strftime('%s', check_out_time) AS INTEGER) WHERE check_out_time IS NOT NULL AND typeof(check_out_time) = 'text'",
+          );
         }
       },
     );
