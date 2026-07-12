@@ -67,10 +67,14 @@ class _StockOpnameScreenState extends ConsumerState<StockOpnameScreen> {
 
     if (confirm == true && titleCtrl.text.isNotEmpty) {
       final db = ref.read(databaseProvider);
+      final currentUser = ref.read(authProvider).currentUser;
+      if (currentUser == null) return;
+      
       final id = await db.insertStockOpname(
         StockOpnamesCompanion.insert(
-          title: titleCtrl.text,
-          status: const drift.Value('berlangsung'),
+          notes: drift.Value(titleCtrl.text),
+          conductedBy: currentUser.id,
+          status: const drift.Value('in_progress'),
         ),
       );
       _loadSessions();
@@ -165,19 +169,19 @@ class _StockOpnameScreenState extends ConsumerState<StockOpnameScreen> {
                             final session = _sessions[i];
                             return ListTile(
                               leading: CircleAvatar(
-                                backgroundColor: session.status == 'berlangsung'
+                                backgroundColor: session.status == 'in_progress'
                                     ? AppColors.warning.withAlpha(50)
                                     : AppColors.success.withAlpha(50),
                                 child: Icon(
-                                  session.status == 'berlangsung'
+                                  session.status == 'in_progress'
                                       ? Icons.sync_rounded
                                       : Icons.check_circle_rounded,
-                                  color: session.status == 'berlangsung' ? AppColors.warning : AppColors.success,
+                                  color: session.status == 'in_progress' ? AppColors.warning : AppColors.success,
                                 ),
                               ),
-                              title: Text(session.title),
+                              title: Text(session.notes ?? 'Stock Opname #${session.id}'),
                               subtitle: Text(
-                                'Dimulai: ${session.startDate.toLocal().toString().split('.')[0]}\nStatus: ${session.status.toUpperCase()}',
+                                'Dimulai: ${session.opnameDate.toLocal().toString().split('.')[0]}\nStatus: ${session.status.toUpperCase()}',
                               ),
                               isThreeLine: true,
                               trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),

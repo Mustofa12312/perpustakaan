@@ -679,47 +679,6 @@ class AppDatabase extends _$AppDatabase {
     final dbFolder = await getApplicationDocumentsDirectory();
     return p.join(dbFolder.path, 'perpustakaan.db');
   }
-}
-
-class LoanWithDetails {
-  final int loanId;
-  final DateTime loanDate;
-  final DateTime dueDate;
-  final DateTime? returnDate;
-  final String loanStatus;
-  final int studentId;
-  final String nis;
-  final String studentName;
-  final String classRoom;
-  final int bookId;
-  final String bookCode;
-  final String bookTitle;
-  final String bookAuthor;
-  final int? fineId;
-  final int? fineAmount;
-  final int? daysLate;
-  final bool? isPaid;
-
-  LoanWithDetails({
-    required this.loanId,
-    required this.loanDate,
-    required this.dueDate,
-    this.returnDate,
-    required this.loanStatus,
-    required this.studentId,
-    required this.nis,
-    required this.studentName,
-    required this.classRoom,
-    required this.bookId,
-    required this.bookCode,
-    required this.bookTitle,
-    required this.bookAuthor,
-    this.fineId,
-    this.fineAmount,
-    this.daysLate,
-    this.isPaid,
-  });
-  }
 
   // ==================== RESERVATION QUERIES ====================
   Future<int> insertReservation(ReservationsCompanion res) =>
@@ -783,7 +742,7 @@ class LoanWithDetails {
 
   // ==================== STOCK OPNAME QUERIES ====================
   Future<List<StockOpname>> getAllStockOpnames() =>
-      (select(stockOpnames)..orderBy([(s) => OrderingTerm.desc(s.startDate)])).get();
+      (select(stockOpnames)..orderBy([(s) => OrderingTerm.desc(s.opnameDate)])).get();
 
   Future<int> insertStockOpname(StockOpnamesCompanion so) =>
       into(stockOpnames).insert(so);
@@ -804,6 +763,47 @@ class LoanWithDetails {
 
   Future<bool> updateStockOpnameItem(StockOpnameItem item) =>
       update(stockOpnameItems).replace(item);
+}
+
+class LoanWithDetails {
+  final int loanId;
+  final DateTime loanDate;
+  final DateTime dueDate;
+  final DateTime? returnDate;
+  final String loanStatus;
+  final int studentId;
+  final String nis;
+  final String studentName;
+  final String classRoom;
+  final int bookId;
+  final String bookCode;
+  final String bookTitle;
+  final String bookAuthor;
+  final int? fineId;
+  final int? fineAmount;
+  final int? daysLate;
+  final bool? isPaid;
+
+  LoanWithDetails({
+    required this.loanId,
+    required this.loanDate,
+    required this.dueDate,
+    this.returnDate,
+    required this.loanStatus,
+    required this.studentId,
+    required this.nis,
+    required this.studentName,
+    required this.classRoom,
+    required this.bookId,
+    required this.bookCode,
+    required this.bookTitle,
+    required this.bookAuthor,
+    this.fineId,
+    this.fineAmount,
+    this.daysLate,
+    this.daysLate,
+    this.isPaid,
+  });
 }
 
 LazyDatabase _openConnection() {

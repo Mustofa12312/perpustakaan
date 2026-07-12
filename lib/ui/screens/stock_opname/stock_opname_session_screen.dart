@@ -93,8 +93,8 @@ class _StockOpnameSessionScreenState extends ConsumerState<StockOpnameSessionScr
         StockOpnameItemsCompanion.insert(
           opnameId: widget.opnameId,
           bookId: book.id,
-          systemQty: book.totalQty,
-          actualQty: 1,
+          expectedQty: book.totalQty,
+          actualQty: const drift.Value(1),
         ),
       );
     }
@@ -108,8 +108,7 @@ class _StockOpnameSessionScreenState extends ConsumerState<StockOpnameSessionScr
     if (_session == null) return;
     final db = ref.read(databaseProvider);
     await db.updateStockOpname(_session!.copyWith(
-      status: 'selesai',
-      endDate: drift.Value(DateTime.now()),
+      status: 'completed',
     ));
     if (mounted) {
       Navigator.pop(context);
@@ -128,11 +127,11 @@ class _StockOpnameSessionScreenState extends ConsumerState<StockOpnameSessionScr
       return const Scaffold(body: Center(child: Text('Sesi tidak ditemukan.')));
     }
 
-    final isCompleted = _session!.status == 'selesai';
+    final isCompleted = _session!.status == 'completed';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_session!.title),
+        title: Text(_session!.notes ?? 'Stock Opname #${_session!.id}'),
         actions: [
           if (!isCompleted)
             ElevatedButton.icon(
@@ -195,7 +194,7 @@ class _StockOpnameSessionScreenState extends ConsumerState<StockOpnameSessionScr
                           // For simplicity, we just show IDs or you can fetch it if needed.
                           // Here, since we have the DB, we can load book info per item.
                           // But to keep it simple, let's just display the difference.
-                          final diff = item.actualQty - item.systemQty;
+                          final diff = item.actualQty - item.expectedQty;
                           final diffColor = diff == 0
                               ? AppColors.success
                               : diff < 0
@@ -207,7 +206,7 @@ class _StockOpnameSessionScreenState extends ConsumerState<StockOpnameSessionScr
                               child: Icon(Icons.book),
                             ),
                             title: Text('Book ID: ${item.bookId}'),
-                            subtitle: Text('Sistem: ${item.systemQty} | Aktual: ${item.actualQty}'),
+                            subtitle: Text('Sistem: ${item.expectedQty} | Aktual: ${item.actualQty}'),
                             trailing: Text(
                               diff == 0 ? 'Sesuai' : (diff > 0 ? '+$diff' : '$diff'),
                               style: TextStyle(
