@@ -237,7 +237,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.danger),
                   ),
                   const SizedBox(height: 8),
-                  ...notif.overdueLoans.take(5).map((l) => Text('- ${l.bookTitle} (oleh ${l.studentName})')),
+                  ...notif.overdueLoans.take(5).map((l) => Text('- Buku #${l.bookId} (Santri #${l.studentId})')),
                   if (notif.overdueLoans.length > 5) const Text('... dan lainnya'),
                   const SizedBox(height: 16),
                 ],

@@ -6,6 +6,7 @@ import '../../../data/database/app_database.dart';
 import '../../../providers/providers.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
+import 'package:drift/drift.dart' as drift;
 
 class UserManagementScreen extends ConsumerStatefulWidget {
   const UserManagementScreen({super.key});
@@ -124,7 +125,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                         username: usernameCtrl.text,
                         passwordHash: _hashPassword(passwordCtrl.text),
                         fullName: fullNameCtrl.text,
-                        role: Value(selectedRole),
+                        role: drift.Value(selectedRole),
                       ));
                     }
                     if (mounted) {
