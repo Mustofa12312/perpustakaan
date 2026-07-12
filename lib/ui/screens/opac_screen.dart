@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/database/app_database.dart';
 import '../../providers/providers.dart';
-import 'widgets/opac_hero_section.dart';
-import 'widgets/opac_book_list.dart';
-import 'widgets/opac_empty_state.dart';
+import 'opac/widgets/opac_hero_section.dart';
+import 'opac/widgets/opac_book_list.dart';
+import 'opac/widgets/opac_empty_state.dart';
 
 class OpacScreen extends ConsumerStatefulWidget {
   const OpacScreen({super.key});
