@@ -3,7 +3,8 @@ import 'students.dart';
 
 class Attendances extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get studentId => integer().references(Students, #id)();
+  IntColumn get studentId =>
+      integer().references(Students, #id, onDelete: KeyAction.cascade)();
   DateTimeColumn get checkInTime =>
       dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get checkOutTime => dateTime().nullable()();

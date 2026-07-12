@@ -6,9 +6,12 @@ import 'users.dart';
 
 class Loans extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get studentId => integer().references(Students, #id)();
-  IntColumn get bookId => integer().references(Books, #id)();
-  IntColumn get userId => integer().references(Users, #id)();
+  IntColumn get studentId =>
+      integer().references(Students, #id, onDelete: KeyAction.cascade)();
+  IntColumn get bookId =>
+      integer().references(Books, #id, onDelete: KeyAction.cascade)();
+  IntColumn get userId =>
+      integer().references(Users, #id, onDelete: KeyAction.cascade)();
   DateTimeColumn get loanDate => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get dueDate => dateTime()();
   DateTimeColumn get returnDate => dateTime().nullable()();
