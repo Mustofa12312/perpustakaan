@@ -803,7 +803,6 @@ class LoanWithDetails {
     this.fineId,
     this.fineAmount,
     this.daysLate,
-    this.daysLate,
     this.isPaid,
   });
 }
