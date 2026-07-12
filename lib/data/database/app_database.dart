@@ -309,6 +309,10 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
+  Future<Student?> getStudentByNis(String nis) =>
+      (select(students)..where((s) => s.nis.equals(nis))).getSingleOrNull();
+
+
   Future<int> insertStudent(StudentsCompanion student) =>
       into(students).insert(student);
 
@@ -715,6 +719,91 @@ class LoanWithDetails {
     this.daysLate,
     this.isPaid,
   });
+  }
+
+  // ==================== RESERVATION QUERIES ====================
+  Future<int> insertReservation(ReservationsCompanion res) =>
+      into(reservations).insert(res);
+
+  Future<bool> updateReservation(Reservation res) =>
+      update(reservations).replace(res);
+
+  Future<int> deleteReservation(int id) =>
+      (delete(reservations)..where((r) => r.id.equals(id))).go();
+
+  Future<List<ReservationWithDetails>> getActiveReservations() async {
+    final query = select(reservations).join([
+      innerJoin(books, books.id.equalsExp(reservations.bookId)),
+      innerJoin(students, students.id.equalsExp(reservations.studentId)),
+    ])
+      ..where(reservations.status.equals('menunggu'))
+      ..orderBy([OrderingTerm.asc(reservations.reservationDate)]);
+
+    final rows = await query.get();
+    return rows.map((row) {
+      return ReservationWithDetails(
+        reservation: row.readTable(reservations),
+        book: row.readTable(books),
+        student: row.readTable(students),
+      );
+    }).toList();
+  }
+
+  Future<List<ReservationWithDetails>> getReservationsByStudent(int studentId) async {
+    final query = select(reservations).join([
+      innerJoin(books, books.id.equalsExp(reservations.bookId)),
+      innerJoin(students, students.id.equalsExp(reservations.studentId)),
+    ])
+      ..where(reservations.studentId.equals(studentId))
+      ..orderBy([OrderingTerm.desc(reservations.reservationDate)]);
+
+    final rows = await query.get();
+    return rows.map((row) {
+      return ReservationWithDetails(
+        reservation: row.readTable(reservations),
+        book: row.readTable(books),
+        student: row.readTable(students),
+      );
+    }).toList();
+  }
+
+  Future<int> getReservationQueuePosition(int bookId, int reservationId) async {
+    final activeRes = await (select(reservations)
+          ..where((r) => r.bookId.equals(bookId) & r.status.equals('menunggu'))
+          ..orderBy([(r) => OrderingTerm.asc(r.reservationDate)]))
+        .get();
+
+    for (int i = 0; i < activeRes.length; i++) {
+      if (activeRes[i].id == reservationId) {
+        return i + 1;
+      }
+    }
+    return 0; // Not found in queue
+  }
+
+  // ==================== STOCK OPNAME QUERIES ====================
+  Future<List<StockOpname>> getAllStockOpnames() =>
+      (select(stockOpnames)..orderBy([(s) => OrderingTerm.desc(s.startDate)])).get();
+
+  Future<int> insertStockOpname(StockOpnamesCompanion so) =>
+      into(stockOpnames).insert(so);
+
+  Future<bool> updateStockOpname(StockOpname so) =>
+      update(stockOpnames).replace(so);
+
+  Future<int> deleteStockOpname(int id) async {
+    await (delete(stockOpnameItems)..where((i) => i.opnameId.equals(id))).go();
+    return (delete(stockOpnames)..where((s) => s.id.equals(id))).go();
+  }
+
+  Future<List<StockOpnameItem>> getStockOpnameItems(int opnameId) =>
+      (select(stockOpnameItems)..where((i) => i.opnameId.equals(opnameId))).get();
+
+  Future<int> insertStockOpnameItem(StockOpnameItemsCompanion item) =>
+      into(stockOpnameItems).insert(item);
+
+  Future<bool> updateStockOpnameItem(StockOpnameItem item) =>
+      update(stockOpnameItems).replace(item);
 }
 
 LazyDatabase _openConnection() {
@@ -731,6 +820,18 @@ class AttendanceWithStudent {
   final Attendance attendance;
   final Student student;
   AttendanceWithStudent({required this.attendance, required this.student});
+}
+
+class ReservationWithDetails {
+  final Reservation reservation;
+  final Book book;
+  final Student student;
+
+  ReservationWithDetails({
+    required this.reservation,
+    required this.book,
+    required this.student,
+  });
 }
 
 class TopVisitor {

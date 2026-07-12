@@ -7,12 +7,20 @@ import '../../../providers/providers.dart';
 import '../../widgets/stat_card.dart';
 import 'category_manager_dialog.dart';
 
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  bool _hasShownStartupAlert = false;
+
+  @override
+  Widget build(BuildContext context) {
     final stats = ref.watch(dashboardStatsProvider);
+    final notificationsAsync = ref.watch(notificationsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final now = DateTime.now();
     final dateFormat = DateFormat('EEEE, d MMMM yyyy', 'id_ID');
@@ -51,6 +59,66 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
+              ),
+              // Notifications
+              notificationsAsync.when(
+                data: (notif) {
+                  if (notif.total > 0 && !_hasShownStartupAlert) {
+                    _hasShownStartupAlert = true;
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _showNotificationDialog(context, notif);
+                    });
+                  }
+                  return Stack(
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(right: 12),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.notifications_active_rounded,
+                            color: notif.total > 0 ? AppColors.warning : AppColors.accent,
+                          ),
+                          onPressed: () {
+                            if (notif.total > 0) {
+                              _showNotificationDialog(context, notif);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Tidak ada notifikasi baru.')),
+                              );
+                            }
+                          },
+                          tooltip: 'Notifikasi',
+                        ),
+                      ),
+                      if (notif.total > 0)
+                        Positioned(
+                          right: 12,
+                          top: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: AppColors.danger,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              notif.total.toString(),
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+                loading: () => const SizedBox(width: 48),
+                error: (_, __) => const SizedBox(width: 48),
               ),
               // Theme toggle
               Container(
@@ -144,6 +212,56 @@ class DashboardScreen extends ConsumerWidget {
 
   String _formatNumber(int number) {
     return NumberFormat('#,###').format(number);
+  }
+
+  void _showNotificationDialog(BuildContext context, NotificationsState notif) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.warning_rounded, color: AppColors.warning),
+              const SizedBox(width: 8),
+              const Text('Notifikasi Penting'),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (notif.overdueLoans.isNotEmpty) ...[
+                  Text(
+                    'Peminjaman Terlambat (${notif.overdueLoans.length})',
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.danger),
+                  ),
+                  const SizedBox(height: 8),
+                  ...notif.overdueLoans.take(5).map((l) => Text('- ${l.bookTitle} (oleh ${l.studentName})')),
+                  if (notif.overdueLoans.length > 5) const Text('... dan lainnya'),
+                  const SizedBox(height: 16),
+                ],
+                if (notif.pendingReservations.isNotEmpty) ...[
+                  Text(
+                    'Reservasi Menunggu (${notif.pendingReservations.length})',
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.info),
+                  ),
+                  const SizedBox(height: 8),
+                  ...notif.pendingReservations.take(5).map((r) => Text('- ${r.book.title} (oleh ${r.student.name})')),
+                  if (notif.pendingReservations.length > 5) const Text('... dan lainnya'),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Tutup'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 

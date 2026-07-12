@@ -193,3 +193,26 @@ final categoriesProvider = FutureProvider<List<String>>((ref) async {
   }
   return List<String>.from(jsonDecode(val));
 });
+
+// Notifications
+class NotificationsState {
+  final List<Loan> overdueLoans;
+  final List<ReservationWithDetails> pendingReservations;
+
+  NotificationsState({
+    this.overdueLoans = const [],
+    this.pendingReservations = const [],
+  });
+
+  int get total => overdueLoans.length + pendingReservations.length;
+}
+
+final notificationsProvider = FutureProvider<NotificationsState>((ref) async {
+  final db = ref.watch(databaseProvider);
+  final overdue = await db.getOverdueLoans();
+  final pendingRes = await db.getActiveReservations();
+  return NotificationsState(
+    overdueLoans: overdue,
+    pendingReservations: pendingRes,
+  );
+});

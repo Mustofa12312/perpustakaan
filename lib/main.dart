@@ -15,6 +15,8 @@ import 'ui/screens/fines/fine_screen.dart';
 import 'ui/screens/reports/reports_screen.dart';
 import 'ui/screens/settings/settings_screen.dart';
 import 'ui/screens/attendance/attendance_screen.dart';
+import 'ui/screens/transactions/reservations_screen.dart';
+import 'ui/screens/stock_opname/stock_opname_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -85,6 +87,8 @@ class HomeShell extends ConsumerWidget {
       const FineScreen(), // 6
       const ReportsScreen(), // 7
       const SettingsScreen(), // 8
+      const ReservationsScreen(), // 9
+      const StockOpnameScreen(), // 10
     ];
 
     return Scaffold(

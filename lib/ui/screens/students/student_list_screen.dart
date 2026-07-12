@@ -87,17 +87,19 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                 label: const Text('Import CSV'),
               ),
               const SizedBox(width: 10),
-              // Delete all button
-              OutlinedButton.icon(
-                onPressed: () => _deleteAllStudents(context),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.danger,
-                  side: const BorderSide(color: AppColors.danger),
+              if (ref.watch(authProvider).currentUser?.role == 'admin') ...[
+                // Delete all button
+                OutlinedButton.icon(
+                  onPressed: () => _deleteAllStudents(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.danger,
+                    side: const BorderSide(color: AppColors.danger),
+                  ),
+                  icon: const Icon(Icons.delete_sweep_rounded, size: 18),
+                  label: const Text('Hapus Semua'),
                 ),
-                icon: const Icon(Icons.delete_sweep_rounded, size: 18),
-                label: const Text('Hapus Semua'),
-              ),
-              const SizedBox(width: 10),
+                const SizedBox(width: 10),
+              ],
               ElevatedButton.icon(
                 onPressed: () => _showStudentForm(context),
                 icon: const Icon(Icons.person_add_rounded, size: 20),
@@ -180,6 +182,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                           onEdit: () =>
                               _showStudentForm(context, student: student),
                           onDelete: () => _deleteStudent(student),
+                          isAdmin: ref.watch(authProvider).currentUser?.role == 'admin',
                         );
                       },
                     ),
@@ -284,6 +287,7 @@ class _StudentListItem extends StatelessWidget {
   final VoidCallback onView;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final bool isAdmin;
 
   const _StudentListItem({
     required this.student,
@@ -291,6 +295,7 @@ class _StudentListItem extends StatelessWidget {
     required this.onView,
     required this.onEdit,
     required this.onDelete,
+    required this.isAdmin,
   });
 
   @override
@@ -401,12 +406,13 @@ class _StudentListItem extends StatelessWidget {
             onPressed: onEdit,
             tooltip: 'Edit',
           ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline_rounded, size: 18),
-            color: AppColors.danger,
-            onPressed: onDelete,
-            tooltip: 'Hapus',
-          ),
+          if (isAdmin)
+            IconButton(
+              icon: const Icon(Icons.delete_outline_rounded, size: 18),
+              color: AppColors.danger,
+              onPressed: onDelete,
+              tooltip: 'Hapus',
+            ),
         ],
       ),
     );

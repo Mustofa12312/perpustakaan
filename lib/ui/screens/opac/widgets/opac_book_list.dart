@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:drift/drift.dart' as drift;
 import '../../../../core/theme/app_theme.dart';
 import '../../../../data/database/app_database.dart';
+import '../../../../providers/providers.dart';
 
-class OpacBookList extends StatelessWidget {
+class OpacBookList extends ConsumerWidget {
   final List<Book> results;
 
   const OpacBookList({super.key, required this.results});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SliverList(
@@ -185,6 +188,18 @@ class OpacBookList extends StatelessWidget {
                                   : AppColors.lightTextPrimary,
                             ),
                           ),
+                          if (!isAvailable) ...[
+                            const Spacer(),
+                            ElevatedButton.icon(
+                              onPressed: () => _showReservationDialog(context, ref, b),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              ),
+                              icon: const Icon(Icons.bookmark_add_rounded, size: 16),
+                              label: const Text('Reservasi'),
+                            ),
+                          ],
                         ],
                       ),
                     ],
@@ -228,6 +243,75 @@ class OpacBookList extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showReservationDialog(BuildContext context, WidgetRef ref, Book book) {
+    final nisController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Reservasi Buku'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Buku "${book.title}" sedang kosong.'),
+              const SizedBox(height: 8),
+              const Text('Masukkan NIS Anda untuk melakukan reservasi. Anda akan diprioritaskan saat buku tersedia.'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: nisController,
+                decoration: const InputDecoration(
+                  labelText: 'NIS',
+                  hintText: 'Contoh: 12345',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final nis = nisController.text.trim();
+                if (nis.isEmpty) return;
+                
+                final db = ref.read(databaseProvider);
+                final student = await db.getStudentByNis(nis);
+                if (student == null) {
+                  if (ctx.mounted) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      const SnackBar(content: Text('NIS tidak ditemukan!'), backgroundColor: AppColors.danger),
+                    );
+                  }
+                  return;
+                }
+
+                await db.insertReservation(
+                  ReservationsCompanion.insert(
+                    bookId: book.id,
+                    studentId: student.id,
+                  ),
+                );
+
+                if (ctx.mounted) {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    const SnackBar(content: Text('Reservasi berhasil!'), backgroundColor: AppColors.success),
+                  );
+                }
+              },
+              child: const Text('Reservasi'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

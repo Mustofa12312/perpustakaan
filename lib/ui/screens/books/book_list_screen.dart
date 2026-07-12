@@ -228,6 +228,7 @@ class _BookListScreenState extends ConsumerState<BookListScreen> {
                           isDark: isDark,
                           onEdit: () => _showBookForm(context, book: book),
                           onDelete: () => _deleteBook(book),
+                          isAdmin: ref.watch(authProvider).currentUser?.role == 'admin',
                         );
                       },
                     ),
@@ -331,12 +332,14 @@ class _BookListItem extends StatelessWidget {
   final bool isDark;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final bool isAdmin;
 
   const _BookListItem({
     required this.book,
     required this.isDark,
     required this.onEdit,
     required this.onDelete,
+    required this.isAdmin,
   });
 
   @override
@@ -458,12 +461,13 @@ class _BookListItem extends StatelessWidget {
             onPressed: onEdit,
             tooltip: 'Edit',
           ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline_rounded, size: 18),
-            color: AppColors.danger,
-            onPressed: onDelete,
-            tooltip: 'Hapus',
-          ),
+          if (isAdmin)
+            IconButton(
+              icon: const Icon(Icons.delete_outline_rounded, size: 18),
+              color: AppColors.danger,
+              onPressed: onDelete,
+              tooltip: 'Hapus',
+            ),
         ],
       ),
     );

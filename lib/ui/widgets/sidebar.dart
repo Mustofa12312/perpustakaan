@@ -116,6 +116,14 @@ class Sidebar extends ConsumerWidget {
                       ref.read(selectedNavIndexProvider.notifier).select(2),
                 ),
                 _NavItem(
+                  icon: Icons.inventory_rounded,
+                  label: 'Stock Opname',
+                  index: 10,
+                  selectedIndex: selectedIndex,
+                  onTap: () =>
+                      ref.read(selectedNavIndexProvider.notifier).select(10),
+                ),
+                _NavItem(
                   icon: Icons.assignment_ind_rounded,
                   label: 'Presensi / Tamu',
                   index: 3,
@@ -148,6 +156,14 @@ class Sidebar extends ConsumerWidget {
                   selectedIndex: selectedIndex,
                   onTap: () =>
                       ref.read(selectedNavIndexProvider.notifier).select(6),
+                ),
+                _NavItem(
+                  icon: Icons.bookmark_added_rounded,
+                  label: 'Reservasi',
+                  index: 9,
+                  selectedIndex: selectedIndex,
+                  onTap: () =>
+                      ref.read(selectedNavIndexProvider.notifier).select(9),
                 ),
                 const SizedBox(height: 8),
                 _NavSection(label: 'LAINNYA', isDark: isDark),
