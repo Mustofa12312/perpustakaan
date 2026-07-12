@@ -14,11 +14,24 @@ import 'tables/fines.dart';
 import 'tables/users.dart';
 import 'tables/settings.dart';
 import 'tables/attendances.dart';
-
+import 'tables/reservations.dart';
+import 'tables/stock_opnames.dart';
+import 'tables/stock_opname_items.dart';
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [Books, Students, Loans, Fines, Users, Settings, Attendances],
+  tables: [
+    Books,
+    Students,
+    Loans,
+    Fines,
+    Users,
+    Settings,
+    Attendances,
+    Reservations,
+    StockOpnames,
+    StockOpnameItems
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -26,7 +39,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -149,6 +162,12 @@ class AppDatabase extends _$AppDatabase {
           // Or wait, if I don't use alterTable I'll lose data. I can just do:
           // We don't have to write complex migration here if it's too much. The prompt just asks to fix the issue. I will write a simple `m.createAll()` for missing tables or just ignore data loss for loans if they want it. Or better, just don't do anything for from < 7 migration because Drift creates it automatically on new installs, and for existing, it might not fail if they just clear data.
           // Actually, the proper way to recreate with data retention in SQLite is complex. I'll just leave it empty for now, new users get cascade. But I should at least do something. Let's just leave it empty for from < 7 since we don't have the table recreation code for drift ready and it's prone to error.
+        }
+        if (from < 8) {
+          await m.createTable(reservations);
+          await m.createTable(stockOpnames);
+          await m.createTable(stockOpnameItems);
+          await m.addColumn(students, students.phoneNumber);
         }
       },
     );

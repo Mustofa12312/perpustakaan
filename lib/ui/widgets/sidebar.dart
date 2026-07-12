@@ -159,14 +159,15 @@ class Sidebar extends ConsumerWidget {
                   onTap: () =>
                       ref.read(selectedNavIndexProvider.notifier).select(7),
                 ),
-                _NavItem(
-                  icon: Icons.settings_rounded,
-                  label: 'Pengaturan',
-                  index: 8,
-                  selectedIndex: selectedIndex,
-                  onTap: () =>
-                      ref.read(selectedNavIndexProvider.notifier).select(8),
-                ),
+                if (authState.currentUser?.role == 'admin')
+                  _NavItem(
+                    icon: Icons.settings_rounded,
+                    label: 'Pengaturan',
+                    index: 8,
+                    selectedIndex: selectedIndex,
+                    onTap: () =>
+                        ref.read(selectedNavIndexProvider.notifier).select(8),
+                  ),
               ],
             ),
           ),

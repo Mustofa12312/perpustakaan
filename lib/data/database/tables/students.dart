@@ -9,5 +9,6 @@ class Students extends Table {
   TextColumn get status =>
       text().withDefault(const Constant('aktif'))(); // aktif, alumni
   TextColumn get photo => text().withDefault(const Constant(''))();
+  TextColumn get phoneNumber => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }

@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:csv/csv.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../providers/providers.dart';
+import 'user_management_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -19,6 +20,7 @@ class SettingsScreen extends ConsumerWidget {
     final bd = dk ? AppColors.darkBorder : AppColors.lightBorder;
     final settingsAsync = ref.watch(settingsProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final isAdmin = ref.watch(authProvider).currentUser?.role == 'admin';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(28),
@@ -150,6 +152,29 @@ class SettingsScreen extends ConsumerWidget {
                   onPressed: () => _showChangeCredentialDialog(context, ref),
                 ),
               ),
+              if (isAdmin) ...[
+                const SizedBox(height: 8),
+                _SettingRow(
+                  label: 'Manajemen Pengguna (Admin & Petugas)',
+                  dk: dk,
+                  trailing: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueGrey,
+                      foregroundColor: Colors.white,
+                    ),
+                    icon: const Icon(Icons.people_alt_rounded, size: 18),
+                    label: const Text('Kelola'),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const UserManagementScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 16),

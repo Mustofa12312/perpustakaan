@@ -784,6 +784,17 @@ class $StudentsTable extends Students with TableInfo<$StudentsTable, Student> {
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
   );
+  static const VerificationMeta _phoneNumberMeta = const VerificationMeta(
+    'phoneNumber',
+  );
+  @override
+  late final GeneratedColumn<String> phoneNumber = GeneratedColumn<String>(
+    'phone_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -805,6 +816,7 @@ class $StudentsTable extends Students with TableInfo<$StudentsTable, Student> {
     gender,
     status,
     photo,
+    phoneNumber,
     createdAt,
   ];
   @override
@@ -862,6 +874,15 @@ class $StudentsTable extends Students with TableInfo<$StudentsTable, Student> {
         photo.isAcceptableOrUnknown(data['photo']!, _photoMeta),
       );
     }
+    if (data.containsKey('phone_number')) {
+      context.handle(
+        _phoneNumberMeta,
+        phoneNumber.isAcceptableOrUnknown(
+          data['phone_number']!,
+          _phoneNumberMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -905,6 +926,10 @@ class $StudentsTable extends Students with TableInfo<$StudentsTable, Student> {
         DriftSqlType.string,
         data['${effectivePrefix}photo'],
       )!,
+      phoneNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phone_number'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -926,6 +951,7 @@ class Student extends DataClass implements Insertable<Student> {
   final String gender;
   final String status;
   final String photo;
+  final String? phoneNumber;
   final DateTime createdAt;
   const Student({
     required this.id,
@@ -935,6 +961,7 @@ class Student extends DataClass implements Insertable<Student> {
     required this.gender,
     required this.status,
     required this.photo,
+    this.phoneNumber,
     required this.createdAt,
   });
   @override
@@ -947,6 +974,9 @@ class Student extends DataClass implements Insertable<Student> {
     map['gender'] = Variable<String>(gender);
     map['status'] = Variable<String>(status);
     map['photo'] = Variable<String>(photo);
+    if (!nullToAbsent || phoneNumber != null) {
+      map['phone_number'] = Variable<String>(phoneNumber);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -960,6 +990,9 @@ class Student extends DataClass implements Insertable<Student> {
       gender: Value(gender),
       status: Value(status),
       photo: Value(photo),
+      phoneNumber: phoneNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(phoneNumber),
       createdAt: Value(createdAt),
     );
   }
@@ -977,6 +1010,7 @@ class Student extends DataClass implements Insertable<Student> {
       gender: serializer.fromJson<String>(json['gender']),
       status: serializer.fromJson<String>(json['status']),
       photo: serializer.fromJson<String>(json['photo']),
+      phoneNumber: serializer.fromJson<String?>(json['phoneNumber']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -991,6 +1025,7 @@ class Student extends DataClass implements Insertable<Student> {
       'gender': serializer.toJson<String>(gender),
       'status': serializer.toJson<String>(status),
       'photo': serializer.toJson<String>(photo),
+      'phoneNumber': serializer.toJson<String?>(phoneNumber),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -1003,6 +1038,7 @@ class Student extends DataClass implements Insertable<Student> {
     String? gender,
     String? status,
     String? photo,
+    Value<String?> phoneNumber = const Value.absent(),
     DateTime? createdAt,
   }) => Student(
     id: id ?? this.id,
@@ -1012,6 +1048,7 @@ class Student extends DataClass implements Insertable<Student> {
     gender: gender ?? this.gender,
     status: status ?? this.status,
     photo: photo ?? this.photo,
+    phoneNumber: phoneNumber.present ? phoneNumber.value : this.phoneNumber,
     createdAt: createdAt ?? this.createdAt,
   );
   Student copyWithCompanion(StudentsCompanion data) {
@@ -1023,6 +1060,9 @@ class Student extends DataClass implements Insertable<Student> {
       gender: data.gender.present ? data.gender.value : this.gender,
       status: data.status.present ? data.status.value : this.status,
       photo: data.photo.present ? data.photo.value : this.photo,
+      phoneNumber: data.phoneNumber.present
+          ? data.phoneNumber.value
+          : this.phoneNumber,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -1037,14 +1077,24 @@ class Student extends DataClass implements Insertable<Student> {
           ..write('gender: $gender, ')
           ..write('status: $status, ')
           ..write('photo: $photo, ')
+          ..write('phoneNumber: $phoneNumber, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, nis, name, classRoom, gender, status, photo, createdAt);
+  int get hashCode => Object.hash(
+    id,
+    nis,
+    name,
+    classRoom,
+    gender,
+    status,
+    photo,
+    phoneNumber,
+    createdAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1056,6 +1106,7 @@ class Student extends DataClass implements Insertable<Student> {
           other.gender == this.gender &&
           other.status == this.status &&
           other.photo == this.photo &&
+          other.phoneNumber == this.phoneNumber &&
           other.createdAt == this.createdAt);
 }
 
@@ -1067,6 +1118,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
   final Value<String> gender;
   final Value<String> status;
   final Value<String> photo;
+  final Value<String?> phoneNumber;
   final Value<DateTime> createdAt;
   const StudentsCompanion({
     this.id = const Value.absent(),
@@ -1076,6 +1128,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
     this.gender = const Value.absent(),
     this.status = const Value.absent(),
     this.photo = const Value.absent(),
+    this.phoneNumber = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   StudentsCompanion.insert({
@@ -1086,6 +1139,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
     this.gender = const Value.absent(),
     this.status = const Value.absent(),
     this.photo = const Value.absent(),
+    this.phoneNumber = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : nis = Value(nis),
        name = Value(name);
@@ -1097,6 +1151,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
     Expression<String>? gender,
     Expression<String>? status,
     Expression<String>? photo,
+    Expression<String>? phoneNumber,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
@@ -1107,6 +1162,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
       if (gender != null) 'gender': gender,
       if (status != null) 'status': status,
       if (photo != null) 'photo': photo,
+      if (phoneNumber != null) 'phone_number': phoneNumber,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -1119,6 +1175,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
     Value<String>? gender,
     Value<String>? status,
     Value<String>? photo,
+    Value<String?>? phoneNumber,
     Value<DateTime>? createdAt,
   }) {
     return StudentsCompanion(
@@ -1129,6 +1186,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
       gender: gender ?? this.gender,
       status: status ?? this.status,
       photo: photo ?? this.photo,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -1157,6 +1215,9 @@ class StudentsCompanion extends UpdateCompanion<Student> {
     if (photo.present) {
       map['photo'] = Variable<String>(photo.value);
     }
+    if (phoneNumber.present) {
+      map['phone_number'] = Variable<String>(phoneNumber.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1173,6 +1234,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
           ..write('gender: $gender, ')
           ..write('status: $status, ')
           ..write('photo: $photo, ')
+          ..write('phoneNumber: $phoneNumber, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -3134,6 +3196,1077 @@ class AttendancesCompanion extends UpdateCompanion<Attendance> {
   }
 }
 
+class $ReservationsTable extends Reservations
+    with TableInfo<$ReservationsTable, Reservation> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ReservationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _studentIdMeta = const VerificationMeta(
+    'studentId',
+  );
+  @override
+  late final GeneratedColumn<int> studentId = GeneratedColumn<int>(
+    'student_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES students (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _bookIdMeta = const VerificationMeta('bookId');
+  @override
+  late final GeneratedColumn<int> bookId = GeneratedColumn<int>(
+    'book_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES books (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _reservationDateMeta = const VerificationMeta(
+    'reservationDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> reservationDate =
+      GeneratedColumn<DateTime>(
+        'reservation_date',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+        defaultValue: currentDateAndTime,
+      );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    studentId,
+    bookId,
+    reservationDate,
+    status,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'reservations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Reservation> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('student_id')) {
+      context.handle(
+        _studentIdMeta,
+        studentId.isAcceptableOrUnknown(data['student_id']!, _studentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_studentIdMeta);
+    }
+    if (data.containsKey('book_id')) {
+      context.handle(
+        _bookIdMeta,
+        bookId.isAcceptableOrUnknown(data['book_id']!, _bookIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bookIdMeta);
+    }
+    if (data.containsKey('reservation_date')) {
+      context.handle(
+        _reservationDateMeta,
+        reservationDate.isAcceptableOrUnknown(
+          data['reservation_date']!,
+          _reservationDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Reservation map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Reservation(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      studentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}student_id'],
+      )!,
+      bookId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}book_id'],
+      )!,
+      reservationDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}reservation_date'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+    );
+  }
+
+  @override
+  $ReservationsTable createAlias(String alias) {
+    return $ReservationsTable(attachedDatabase, alias);
+  }
+}
+
+class Reservation extends DataClass implements Insertable<Reservation> {
+  final int id;
+  final int studentId;
+  final int bookId;
+  final DateTime reservationDate;
+  final String status;
+  const Reservation({
+    required this.id,
+    required this.studentId,
+    required this.bookId,
+    required this.reservationDate,
+    required this.status,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['student_id'] = Variable<int>(studentId);
+    map['book_id'] = Variable<int>(bookId);
+    map['reservation_date'] = Variable<DateTime>(reservationDate);
+    map['status'] = Variable<String>(status);
+    return map;
+  }
+
+  ReservationsCompanion toCompanion(bool nullToAbsent) {
+    return ReservationsCompanion(
+      id: Value(id),
+      studentId: Value(studentId),
+      bookId: Value(bookId),
+      reservationDate: Value(reservationDate),
+      status: Value(status),
+    );
+  }
+
+  factory Reservation.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Reservation(
+      id: serializer.fromJson<int>(json['id']),
+      studentId: serializer.fromJson<int>(json['studentId']),
+      bookId: serializer.fromJson<int>(json['bookId']),
+      reservationDate: serializer.fromJson<DateTime>(json['reservationDate']),
+      status: serializer.fromJson<String>(json['status']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'studentId': serializer.toJson<int>(studentId),
+      'bookId': serializer.toJson<int>(bookId),
+      'reservationDate': serializer.toJson<DateTime>(reservationDate),
+      'status': serializer.toJson<String>(status),
+    };
+  }
+
+  Reservation copyWith({
+    int? id,
+    int? studentId,
+    int? bookId,
+    DateTime? reservationDate,
+    String? status,
+  }) => Reservation(
+    id: id ?? this.id,
+    studentId: studentId ?? this.studentId,
+    bookId: bookId ?? this.bookId,
+    reservationDate: reservationDate ?? this.reservationDate,
+    status: status ?? this.status,
+  );
+  Reservation copyWithCompanion(ReservationsCompanion data) {
+    return Reservation(
+      id: data.id.present ? data.id.value : this.id,
+      studentId: data.studentId.present ? data.studentId.value : this.studentId,
+      bookId: data.bookId.present ? data.bookId.value : this.bookId,
+      reservationDate: data.reservationDate.present
+          ? data.reservationDate.value
+          : this.reservationDate,
+      status: data.status.present ? data.status.value : this.status,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Reservation(')
+          ..write('id: $id, ')
+          ..write('studentId: $studentId, ')
+          ..write('bookId: $bookId, ')
+          ..write('reservationDate: $reservationDate, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, studentId, bookId, reservationDate, status);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Reservation &&
+          other.id == this.id &&
+          other.studentId == this.studentId &&
+          other.bookId == this.bookId &&
+          other.reservationDate == this.reservationDate &&
+          other.status == this.status);
+}
+
+class ReservationsCompanion extends UpdateCompanion<Reservation> {
+  final Value<int> id;
+  final Value<int> studentId;
+  final Value<int> bookId;
+  final Value<DateTime> reservationDate;
+  final Value<String> status;
+  const ReservationsCompanion({
+    this.id = const Value.absent(),
+    this.studentId = const Value.absent(),
+    this.bookId = const Value.absent(),
+    this.reservationDate = const Value.absent(),
+    this.status = const Value.absent(),
+  });
+  ReservationsCompanion.insert({
+    this.id = const Value.absent(),
+    required int studentId,
+    required int bookId,
+    this.reservationDate = const Value.absent(),
+    this.status = const Value.absent(),
+  }) : studentId = Value(studentId),
+       bookId = Value(bookId);
+  static Insertable<Reservation> custom({
+    Expression<int>? id,
+    Expression<int>? studentId,
+    Expression<int>? bookId,
+    Expression<DateTime>? reservationDate,
+    Expression<String>? status,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (studentId != null) 'student_id': studentId,
+      if (bookId != null) 'book_id': bookId,
+      if (reservationDate != null) 'reservation_date': reservationDate,
+      if (status != null) 'status': status,
+    });
+  }
+
+  ReservationsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? studentId,
+    Value<int>? bookId,
+    Value<DateTime>? reservationDate,
+    Value<String>? status,
+  }) {
+    return ReservationsCompanion(
+      id: id ?? this.id,
+      studentId: studentId ?? this.studentId,
+      bookId: bookId ?? this.bookId,
+      reservationDate: reservationDate ?? this.reservationDate,
+      status: status ?? this.status,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (studentId.present) {
+      map['student_id'] = Variable<int>(studentId.value);
+    }
+    if (bookId.present) {
+      map['book_id'] = Variable<int>(bookId.value);
+    }
+    if (reservationDate.present) {
+      map['reservation_date'] = Variable<DateTime>(reservationDate.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReservationsCompanion(')
+          ..write('id: $id, ')
+          ..write('studentId: $studentId, ')
+          ..write('bookId: $bookId, ')
+          ..write('reservationDate: $reservationDate, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $StockOpnamesTable extends StockOpnames
+    with TableInfo<$StockOpnamesTable, StockOpname> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StockOpnamesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _opnameDateMeta = const VerificationMeta(
+    'opnameDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> opnameDate = GeneratedColumn<DateTime>(
+    'opname_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _conductedByMeta = const VerificationMeta(
+    'conductedBy',
+  );
+  @override
+  late final GeneratedColumn<int> conductedBy = GeneratedColumn<int>(
+    'conducted_by',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('in_progress'),
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    opnameDate,
+    conductedBy,
+    status,
+    notes,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'stock_opnames';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StockOpname> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('opname_date')) {
+      context.handle(
+        _opnameDateMeta,
+        opnameDate.isAcceptableOrUnknown(data['opname_date']!, _opnameDateMeta),
+      );
+    }
+    if (data.containsKey('conducted_by')) {
+      context.handle(
+        _conductedByMeta,
+        conductedBy.isAcceptableOrUnknown(
+          data['conducted_by']!,
+          _conductedByMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_conductedByMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StockOpname map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StockOpname(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      opnameDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}opname_date'],
+      )!,
+      conductedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}conducted_by'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+    );
+  }
+
+  @override
+  $StockOpnamesTable createAlias(String alias) {
+    return $StockOpnamesTable(attachedDatabase, alias);
+  }
+}
+
+class StockOpname extends DataClass implements Insertable<StockOpname> {
+  final int id;
+  final DateTime opnameDate;
+  final int conductedBy;
+  final String status;
+  final String? notes;
+  const StockOpname({
+    required this.id,
+    required this.opnameDate,
+    required this.conductedBy,
+    required this.status,
+    this.notes,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['opname_date'] = Variable<DateTime>(opnameDate);
+    map['conducted_by'] = Variable<int>(conductedBy);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    return map;
+  }
+
+  StockOpnamesCompanion toCompanion(bool nullToAbsent) {
+    return StockOpnamesCompanion(
+      id: Value(id),
+      opnameDate: Value(opnameDate),
+      conductedBy: Value(conductedBy),
+      status: Value(status),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+    );
+  }
+
+  factory StockOpname.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StockOpname(
+      id: serializer.fromJson<int>(json['id']),
+      opnameDate: serializer.fromJson<DateTime>(json['opnameDate']),
+      conductedBy: serializer.fromJson<int>(json['conductedBy']),
+      status: serializer.fromJson<String>(json['status']),
+      notes: serializer.fromJson<String?>(json['notes']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'opnameDate': serializer.toJson<DateTime>(opnameDate),
+      'conductedBy': serializer.toJson<int>(conductedBy),
+      'status': serializer.toJson<String>(status),
+      'notes': serializer.toJson<String?>(notes),
+    };
+  }
+
+  StockOpname copyWith({
+    int? id,
+    DateTime? opnameDate,
+    int? conductedBy,
+    String? status,
+    Value<String?> notes = const Value.absent(),
+  }) => StockOpname(
+    id: id ?? this.id,
+    opnameDate: opnameDate ?? this.opnameDate,
+    conductedBy: conductedBy ?? this.conductedBy,
+    status: status ?? this.status,
+    notes: notes.present ? notes.value : this.notes,
+  );
+  StockOpname copyWithCompanion(StockOpnamesCompanion data) {
+    return StockOpname(
+      id: data.id.present ? data.id.value : this.id,
+      opnameDate: data.opnameDate.present
+          ? data.opnameDate.value
+          : this.opnameDate,
+      conductedBy: data.conductedBy.present
+          ? data.conductedBy.value
+          : this.conductedBy,
+      status: data.status.present ? data.status.value : this.status,
+      notes: data.notes.present ? data.notes.value : this.notes,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StockOpname(')
+          ..write('id: $id, ')
+          ..write('opnameDate: $opnameDate, ')
+          ..write('conductedBy: $conductedBy, ')
+          ..write('status: $status, ')
+          ..write('notes: $notes')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, opnameDate, conductedBy, status, notes);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StockOpname &&
+          other.id == this.id &&
+          other.opnameDate == this.opnameDate &&
+          other.conductedBy == this.conductedBy &&
+          other.status == this.status &&
+          other.notes == this.notes);
+}
+
+class StockOpnamesCompanion extends UpdateCompanion<StockOpname> {
+  final Value<int> id;
+  final Value<DateTime> opnameDate;
+  final Value<int> conductedBy;
+  final Value<String> status;
+  final Value<String?> notes;
+  const StockOpnamesCompanion({
+    this.id = const Value.absent(),
+    this.opnameDate = const Value.absent(),
+    this.conductedBy = const Value.absent(),
+    this.status = const Value.absent(),
+    this.notes = const Value.absent(),
+  });
+  StockOpnamesCompanion.insert({
+    this.id = const Value.absent(),
+    this.opnameDate = const Value.absent(),
+    required int conductedBy,
+    this.status = const Value.absent(),
+    this.notes = const Value.absent(),
+  }) : conductedBy = Value(conductedBy);
+  static Insertable<StockOpname> custom({
+    Expression<int>? id,
+    Expression<DateTime>? opnameDate,
+    Expression<int>? conductedBy,
+    Expression<String>? status,
+    Expression<String>? notes,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (opnameDate != null) 'opname_date': opnameDate,
+      if (conductedBy != null) 'conducted_by': conductedBy,
+      if (status != null) 'status': status,
+      if (notes != null) 'notes': notes,
+    });
+  }
+
+  StockOpnamesCompanion copyWith({
+    Value<int>? id,
+    Value<DateTime>? opnameDate,
+    Value<int>? conductedBy,
+    Value<String>? status,
+    Value<String?>? notes,
+  }) {
+    return StockOpnamesCompanion(
+      id: id ?? this.id,
+      opnameDate: opnameDate ?? this.opnameDate,
+      conductedBy: conductedBy ?? this.conductedBy,
+      status: status ?? this.status,
+      notes: notes ?? this.notes,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (opnameDate.present) {
+      map['opname_date'] = Variable<DateTime>(opnameDate.value);
+    }
+    if (conductedBy.present) {
+      map['conducted_by'] = Variable<int>(conductedBy.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StockOpnamesCompanion(')
+          ..write('id: $id, ')
+          ..write('opnameDate: $opnameDate, ')
+          ..write('conductedBy: $conductedBy, ')
+          ..write('status: $status, ')
+          ..write('notes: $notes')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $StockOpnameItemsTable extends StockOpnameItems
+    with TableInfo<$StockOpnameItemsTable, StockOpnameItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StockOpnameItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _opnameIdMeta = const VerificationMeta(
+    'opnameId',
+  );
+  @override
+  late final GeneratedColumn<int> opnameId = GeneratedColumn<int>(
+    'opname_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES stock_opnames (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _bookIdMeta = const VerificationMeta('bookId');
+  @override
+  late final GeneratedColumn<int> bookId = GeneratedColumn<int>(
+    'book_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES books (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _expectedQtyMeta = const VerificationMeta(
+    'expectedQty',
+  );
+  @override
+  late final GeneratedColumn<int> expectedQty = GeneratedColumn<int>(
+    'expected_qty',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _actualQtyMeta = const VerificationMeta(
+    'actualQty',
+  );
+  @override
+  late final GeneratedColumn<int> actualQty = GeneratedColumn<int>(
+    'actual_qty',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    opnameId,
+    bookId,
+    expectedQty,
+    actualQty,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'stock_opname_items';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StockOpnameItem> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('opname_id')) {
+      context.handle(
+        _opnameIdMeta,
+        opnameId.isAcceptableOrUnknown(data['opname_id']!, _opnameIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_opnameIdMeta);
+    }
+    if (data.containsKey('book_id')) {
+      context.handle(
+        _bookIdMeta,
+        bookId.isAcceptableOrUnknown(data['book_id']!, _bookIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bookIdMeta);
+    }
+    if (data.containsKey('expected_qty')) {
+      context.handle(
+        _expectedQtyMeta,
+        expectedQty.isAcceptableOrUnknown(
+          data['expected_qty']!,
+          _expectedQtyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_expectedQtyMeta);
+    }
+    if (data.containsKey('actual_qty')) {
+      context.handle(
+        _actualQtyMeta,
+        actualQty.isAcceptableOrUnknown(data['actual_qty']!, _actualQtyMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StockOpnameItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StockOpnameItem(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      opnameId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}opname_id'],
+      )!,
+      bookId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}book_id'],
+      )!,
+      expectedQty: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}expected_qty'],
+      )!,
+      actualQty: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}actual_qty'],
+      )!,
+    );
+  }
+
+  @override
+  $StockOpnameItemsTable createAlias(String alias) {
+    return $StockOpnameItemsTable(attachedDatabase, alias);
+  }
+}
+
+class StockOpnameItem extends DataClass implements Insertable<StockOpnameItem> {
+  final int id;
+  final int opnameId;
+  final int bookId;
+  final int expectedQty;
+  final int actualQty;
+  const StockOpnameItem({
+    required this.id,
+    required this.opnameId,
+    required this.bookId,
+    required this.expectedQty,
+    required this.actualQty,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['opname_id'] = Variable<int>(opnameId);
+    map['book_id'] = Variable<int>(bookId);
+    map['expected_qty'] = Variable<int>(expectedQty);
+    map['actual_qty'] = Variable<int>(actualQty);
+    return map;
+  }
+
+  StockOpnameItemsCompanion toCompanion(bool nullToAbsent) {
+    return StockOpnameItemsCompanion(
+      id: Value(id),
+      opnameId: Value(opnameId),
+      bookId: Value(bookId),
+      expectedQty: Value(expectedQty),
+      actualQty: Value(actualQty),
+    );
+  }
+
+  factory StockOpnameItem.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StockOpnameItem(
+      id: serializer.fromJson<int>(json['id']),
+      opnameId: serializer.fromJson<int>(json['opnameId']),
+      bookId: serializer.fromJson<int>(json['bookId']),
+      expectedQty: serializer.fromJson<int>(json['expectedQty']),
+      actualQty: serializer.fromJson<int>(json['actualQty']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'opnameId': serializer.toJson<int>(opnameId),
+      'bookId': serializer.toJson<int>(bookId),
+      'expectedQty': serializer.toJson<int>(expectedQty),
+      'actualQty': serializer.toJson<int>(actualQty),
+    };
+  }
+
+  StockOpnameItem copyWith({
+    int? id,
+    int? opnameId,
+    int? bookId,
+    int? expectedQty,
+    int? actualQty,
+  }) => StockOpnameItem(
+    id: id ?? this.id,
+    opnameId: opnameId ?? this.opnameId,
+    bookId: bookId ?? this.bookId,
+    expectedQty: expectedQty ?? this.expectedQty,
+    actualQty: actualQty ?? this.actualQty,
+  );
+  StockOpnameItem copyWithCompanion(StockOpnameItemsCompanion data) {
+    return StockOpnameItem(
+      id: data.id.present ? data.id.value : this.id,
+      opnameId: data.opnameId.present ? data.opnameId.value : this.opnameId,
+      bookId: data.bookId.present ? data.bookId.value : this.bookId,
+      expectedQty: data.expectedQty.present
+          ? data.expectedQty.value
+          : this.expectedQty,
+      actualQty: data.actualQty.present ? data.actualQty.value : this.actualQty,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StockOpnameItem(')
+          ..write('id: $id, ')
+          ..write('opnameId: $opnameId, ')
+          ..write('bookId: $bookId, ')
+          ..write('expectedQty: $expectedQty, ')
+          ..write('actualQty: $actualQty')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, opnameId, bookId, expectedQty, actualQty);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StockOpnameItem &&
+          other.id == this.id &&
+          other.opnameId == this.opnameId &&
+          other.bookId == this.bookId &&
+          other.expectedQty == this.expectedQty &&
+          other.actualQty == this.actualQty);
+}
+
+class StockOpnameItemsCompanion extends UpdateCompanion<StockOpnameItem> {
+  final Value<int> id;
+  final Value<int> opnameId;
+  final Value<int> bookId;
+  final Value<int> expectedQty;
+  final Value<int> actualQty;
+  const StockOpnameItemsCompanion({
+    this.id = const Value.absent(),
+    this.opnameId = const Value.absent(),
+    this.bookId = const Value.absent(),
+    this.expectedQty = const Value.absent(),
+    this.actualQty = const Value.absent(),
+  });
+  StockOpnameItemsCompanion.insert({
+    this.id = const Value.absent(),
+    required int opnameId,
+    required int bookId,
+    required int expectedQty,
+    this.actualQty = const Value.absent(),
+  }) : opnameId = Value(opnameId),
+       bookId = Value(bookId),
+       expectedQty = Value(expectedQty);
+  static Insertable<StockOpnameItem> custom({
+    Expression<int>? id,
+    Expression<int>? opnameId,
+    Expression<int>? bookId,
+    Expression<int>? expectedQty,
+    Expression<int>? actualQty,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (opnameId != null) 'opname_id': opnameId,
+      if (bookId != null) 'book_id': bookId,
+      if (expectedQty != null) 'expected_qty': expectedQty,
+      if (actualQty != null) 'actual_qty': actualQty,
+    });
+  }
+
+  StockOpnameItemsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? opnameId,
+    Value<int>? bookId,
+    Value<int>? expectedQty,
+    Value<int>? actualQty,
+  }) {
+    return StockOpnameItemsCompanion(
+      id: id ?? this.id,
+      opnameId: opnameId ?? this.opnameId,
+      bookId: bookId ?? this.bookId,
+      expectedQty: expectedQty ?? this.expectedQty,
+      actualQty: actualQty ?? this.actualQty,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (opnameId.present) {
+      map['opname_id'] = Variable<int>(opnameId.value);
+    }
+    if (bookId.present) {
+      map['book_id'] = Variable<int>(bookId.value);
+    }
+    if (expectedQty.present) {
+      map['expected_qty'] = Variable<int>(expectedQty.value);
+    }
+    if (actualQty.present) {
+      map['actual_qty'] = Variable<int>(actualQty.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StockOpnameItemsCompanion(')
+          ..write('id: $id, ')
+          ..write('opnameId: $opnameId, ')
+          ..write('bookId: $bookId, ')
+          ..write('expectedQty: $expectedQty, ')
+          ..write('actualQty: $actualQty')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3144,6 +4277,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $FinesTable fines = $FinesTable(this);
   late final $SettingsTable settings = $SettingsTable(this);
   late final $AttendancesTable attendances = $AttendancesTable(this);
+  late final $ReservationsTable reservations = $ReservationsTable(this);
+  late final $StockOpnamesTable stockOpnames = $StockOpnamesTable(this);
+  late final $StockOpnameItemsTable stockOpnameItems = $StockOpnameItemsTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3156,6 +4294,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     fines,
     settings,
     attendances,
+    reservations,
+    stockOpnames,
+    stockOpnameItems,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -3193,6 +4334,41 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('attendances', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'students',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('reservations', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'books',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('reservations', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('stock_opnames', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'stock_opnames',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('stock_opname_items', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'books',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('stock_opname_items', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -3246,6 +4422,44 @@ final class $$BooksTableReferences
     ).filter((f) => f.bookId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_loansRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$ReservationsTable, List<Reservation>>
+  _reservationsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.reservations,
+    aliasName: $_aliasNameGenerator(db.books.id, db.reservations.bookId),
+  );
+
+  $$ReservationsTableProcessedTableManager get reservationsRefs {
+    final manager = $$ReservationsTableTableManager(
+      $_db,
+      $_db.reservations,
+    ).filter((f) => f.bookId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_reservationsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$StockOpnameItemsTable, List<StockOpnameItem>>
+  _stockOpnameItemsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.stockOpnameItems,
+    aliasName: $_aliasNameGenerator(db.books.id, db.stockOpnameItems.bookId),
+  );
+
+  $$StockOpnameItemsTableProcessedTableManager get stockOpnameItemsRefs {
+    final manager = $$StockOpnameItemsTableTableManager(
+      $_db,
+      $_db.stockOpnameItems,
+    ).filter((f) => f.bookId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _stockOpnameItemsRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -3336,6 +4550,56 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
           }) => $$LoansTableFilterComposer(
             $db: $db,
             $table: $db.loans,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> reservationsRefs(
+    Expression<bool> Function($$ReservationsTableFilterComposer f) f,
+  ) {
+    final $$ReservationsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reservations,
+      getReferencedColumn: (t) => t.bookId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReservationsTableFilterComposer(
+            $db: $db,
+            $table: $db.reservations,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> stockOpnameItemsRefs(
+    Expression<bool> Function($$StockOpnameItemsTableFilterComposer f) f,
+  ) {
+    final $$StockOpnameItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.stockOpnameItems,
+      getReferencedColumn: (t) => t.bookId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StockOpnameItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.stockOpnameItems,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3491,6 +4755,56 @@ class $$BooksTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> reservationsRefs<T extends Object>(
+    Expression<T> Function($$ReservationsTableAnnotationComposer a) f,
+  ) {
+    final $$ReservationsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reservations,
+      getReferencedColumn: (t) => t.bookId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReservationsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.reservations,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> stockOpnameItemsRefs<T extends Object>(
+    Expression<T> Function($$StockOpnameItemsTableAnnotationComposer a) f,
+  ) {
+    final $$StockOpnameItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.stockOpnameItems,
+      getReferencedColumn: (t) => t.bookId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StockOpnameItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.stockOpnameItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$BooksTableTableManager
@@ -3506,7 +4820,11 @@ class $$BooksTableTableManager
           $$BooksTableUpdateCompanionBuilder,
           (Book, $$BooksTableReferences),
           Book,
-          PrefetchHooks Function({bool loansRefs})
+          PrefetchHooks Function({
+            bool loansRefs,
+            bool reservationsRefs,
+            bool stockOpnameItemsRefs,
+          })
         > {
   $$BooksTableTableManager(_$AppDatabase db, $BooksTable table)
     : super(
@@ -3581,29 +4899,81 @@ class $$BooksTableTableManager
                     (e.readTable(table), $$BooksTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({loansRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (loansRefs) db.loans],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (loansRefs)
-                    await $_getPrefetchedData<Book, $BooksTable, Loan>(
-                      currentTable: table,
-                      referencedTable: $$BooksTableReferences._loansRefsTable(
-                        db,
-                      ),
-                      managerFromTypedResult: (p0) =>
-                          $$BooksTableReferences(db, table, p0).loansRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.bookId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({
+                loansRefs = false,
+                reservationsRefs = false,
+                stockOpnameItemsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (loansRefs) db.loans,
+                    if (reservationsRefs) db.reservations,
+                    if (stockOpnameItemsRefs) db.stockOpnameItems,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (loansRefs)
+                        await $_getPrefetchedData<Book, $BooksTable, Loan>(
+                          currentTable: table,
+                          referencedTable: $$BooksTableReferences
+                              ._loansRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$BooksTableReferences(db, table, p0).loansRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bookId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (reservationsRefs)
+                        await $_getPrefetchedData<
+                          Book,
+                          $BooksTable,
+                          Reservation
+                        >(
+                          currentTable: table,
+                          referencedTable: $$BooksTableReferences
+                              ._reservationsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$BooksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).reservationsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bookId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (stockOpnameItemsRefs)
+                        await $_getPrefetchedData<
+                          Book,
+                          $BooksTable,
+                          StockOpnameItem
+                        >(
+                          currentTable: table,
+                          referencedTable: $$BooksTableReferences
+                              ._stockOpnameItemsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$BooksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).stockOpnameItemsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bookId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -3620,7 +4990,11 @@ typedef $$BooksTableProcessedTableManager =
       $$BooksTableUpdateCompanionBuilder,
       (Book, $$BooksTableReferences),
       Book,
-      PrefetchHooks Function({bool loansRefs})
+      PrefetchHooks Function({
+        bool loansRefs,
+        bool reservationsRefs,
+        bool stockOpnameItemsRefs,
+      })
     >;
 typedef $$StudentsTableCreateCompanionBuilder =
     StudentsCompanion Function({
@@ -3631,6 +5005,7 @@ typedef $$StudentsTableCreateCompanionBuilder =
       Value<String> gender,
       Value<String> status,
       Value<String> photo,
+      Value<String?> phoneNumber,
       Value<DateTime> createdAt,
     });
 typedef $$StudentsTableUpdateCompanionBuilder =
@@ -3642,6 +5017,7 @@ typedef $$StudentsTableUpdateCompanionBuilder =
       Value<String> gender,
       Value<String> status,
       Value<String> photo,
+      Value<String?> phoneNumber,
       Value<DateTime> createdAt,
     });
 
@@ -3681,6 +5057,24 @@ final class $$StudentsTableReferences
     ).filter((f) => f.studentId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_attendancesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$ReservationsTable, List<Reservation>>
+  _reservationsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.reservations,
+    aliasName: $_aliasNameGenerator(db.students.id, db.reservations.studentId),
+  );
+
+  $$ReservationsTableProcessedTableManager get reservationsRefs {
+    final manager = $$ReservationsTableTableManager(
+      $_db,
+      $_db.reservations,
+    ).filter((f) => f.studentId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_reservationsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -3728,6 +5122,11 @@ class $$StudentsTableFilterComposer
 
   ColumnFilters<String> get photo => $composableBuilder(
     column: $table.photo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phoneNumber => $composableBuilder(
+    column: $table.phoneNumber,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3785,6 +5184,31 @@ class $$StudentsTableFilterComposer
     );
     return f(composer);
   }
+
+  Expression<bool> reservationsRefs(
+    Expression<bool> Function($$ReservationsTableFilterComposer f) f,
+  ) {
+    final $$ReservationsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reservations,
+      getReferencedColumn: (t) => t.studentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReservationsTableFilterComposer(
+            $db: $db,
+            $table: $db.reservations,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$StudentsTableOrderingComposer
@@ -3831,6 +5255,11 @@ class $$StudentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get phoneNumber => $composableBuilder(
+    column: $table.phoneNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -3866,6 +5295,11 @@ class $$StudentsTableAnnotationComposer
 
   GeneratedColumn<String> get photo =>
       $composableBuilder(column: $table.photo, builder: (column) => column);
+
+  GeneratedColumn<String> get phoneNumber => $composableBuilder(
+    column: $table.phoneNumber,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -3919,6 +5353,31 @@ class $$StudentsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> reservationsRefs<T extends Object>(
+    Expression<T> Function($$ReservationsTableAnnotationComposer a) f,
+  ) {
+    final $$ReservationsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reservations,
+      getReferencedColumn: (t) => t.studentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReservationsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.reservations,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$StudentsTableTableManager
@@ -3934,7 +5393,11 @@ class $$StudentsTableTableManager
           $$StudentsTableUpdateCompanionBuilder,
           (Student, $$StudentsTableReferences),
           Student,
-          PrefetchHooks Function({bool loansRefs, bool attendancesRefs})
+          PrefetchHooks Function({
+            bool loansRefs,
+            bool attendancesRefs,
+            bool reservationsRefs,
+          })
         > {
   $$StudentsTableTableManager(_$AppDatabase db, $StudentsTable table)
     : super(
@@ -3956,6 +5419,7 @@ class $$StudentsTableTableManager
                 Value<String> gender = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<String> photo = const Value.absent(),
+                Value<String?> phoneNumber = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => StudentsCompanion(
                 id: id,
@@ -3965,6 +5429,7 @@ class $$StudentsTableTableManager
                 gender: gender,
                 status: status,
                 photo: photo,
+                phoneNumber: phoneNumber,
                 createdAt: createdAt,
               ),
           createCompanionCallback:
@@ -3976,6 +5441,7 @@ class $$StudentsTableTableManager
                 Value<String> gender = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<String> photo = const Value.absent(),
+                Value<String?> phoneNumber = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => StudentsCompanion.insert(
                 id: id,
@@ -3985,6 +5451,7 @@ class $$StudentsTableTableManager
                 gender: gender,
                 status: status,
                 photo: photo,
+                phoneNumber: phoneNumber,
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0
@@ -3996,12 +5463,17 @@ class $$StudentsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({loansRefs = false, attendancesRefs = false}) {
+              ({
+                loansRefs = false,
+                attendancesRefs = false,
+                reservationsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (loansRefs) db.loans,
                     if (attendancesRefs) db.attendances,
+                    if (reservationsRefs) db.reservations,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -4048,6 +5520,27 @@ class $$StudentsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (reservationsRefs)
+                        await $_getPrefetchedData<
+                          Student,
+                          $StudentsTable,
+                          Reservation
+                        >(
+                          currentTable: table,
+                          referencedTable: $$StudentsTableReferences
+                              ._reservationsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$StudentsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).reservationsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.studentId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -4068,7 +5561,11 @@ typedef $$StudentsTableProcessedTableManager =
       $$StudentsTableUpdateCompanionBuilder,
       (Student, $$StudentsTableReferences),
       Student,
-      PrefetchHooks Function({bool loansRefs, bool attendancesRefs})
+      PrefetchHooks Function({
+        bool loansRefs,
+        bool attendancesRefs,
+        bool reservationsRefs,
+      })
     >;
 typedef $$UsersTableCreateCompanionBuilder =
     UsersCompanion Function({
@@ -4107,6 +5604,24 @@ final class $$UsersTableReferences
     ).filter((f) => f.userId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_loansRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$StockOpnamesTable, List<StockOpname>>
+  _stockOpnamesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.stockOpnames,
+    aliasName: $_aliasNameGenerator(db.users.id, db.stockOpnames.conductedBy),
+  );
+
+  $$StockOpnamesTableProcessedTableManager get stockOpnamesRefs {
+    final manager = $$StockOpnamesTableTableManager(
+      $_db,
+      $_db.stockOpnames,
+    ).filter((f) => f.conductedBy.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_stockOpnamesRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -4167,6 +5682,31 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
           }) => $$LoansTableFilterComposer(
             $db: $db,
             $table: $db.loans,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> stockOpnamesRefs(
+    Expression<bool> Function($$StockOpnamesTableFilterComposer f) f,
+  ) {
+    final $$StockOpnamesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.stockOpnames,
+      getReferencedColumn: (t) => t.conductedBy,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StockOpnamesTableFilterComposer(
+            $db: $db,
+            $table: $db.stockOpnames,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4270,6 +5810,31 @@ class $$UsersTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> stockOpnamesRefs<T extends Object>(
+    Expression<T> Function($$StockOpnamesTableAnnotationComposer a) f,
+  ) {
+    final $$StockOpnamesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.stockOpnames,
+      getReferencedColumn: (t) => t.conductedBy,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StockOpnamesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.stockOpnames,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$UsersTableTableManager
@@ -4285,7 +5850,7 @@ class $$UsersTableTableManager
           $$UsersTableUpdateCompanionBuilder,
           (User, $$UsersTableReferences),
           User,
-          PrefetchHooks Function({bool loansRefs})
+          PrefetchHooks Function({bool loansRefs, bool stockOpnamesRefs})
         > {
   $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
     : super(
@@ -4336,29 +5901,55 @@ class $$UsersTableTableManager
                     (e.readTable(table), $$UsersTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({loansRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (loansRefs) db.loans],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (loansRefs)
-                    await $_getPrefetchedData<User, $UsersTable, Loan>(
-                      currentTable: table,
-                      referencedTable: $$UsersTableReferences._loansRefsTable(
-                        db,
-                      ),
-                      managerFromTypedResult: (p0) =>
-                          $$UsersTableReferences(db, table, p0).loansRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.userId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({loansRefs = false, stockOpnamesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (loansRefs) db.loans,
+                    if (stockOpnamesRefs) db.stockOpnames,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (loansRefs)
+                        await $_getPrefetchedData<User, $UsersTable, Loan>(
+                          currentTable: table,
+                          referencedTable: $$UsersTableReferences
+                              ._loansRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$UsersTableReferences(db, table, p0).loansRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (stockOpnamesRefs)
+                        await $_getPrefetchedData<
+                          User,
+                          $UsersTable,
+                          StockOpname
+                        >(
+                          currentTable: table,
+                          referencedTable: $$UsersTableReferences
+                              ._stockOpnamesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$UsersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).stockOpnamesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.conductedBy == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -4375,7 +5966,7 @@ typedef $$UsersTableProcessedTableManager =
       $$UsersTableUpdateCompanionBuilder,
       (User, $$UsersTableReferences),
       User,
-      PrefetchHooks Function({bool loansRefs})
+      PrefetchHooks Function({bool loansRefs, bool stockOpnamesRefs})
     >;
 typedef $$LoansTableCreateCompanionBuilder =
     LoansCompanion Function({
@@ -5820,6 +7411,1236 @@ typedef $$AttendancesTableProcessedTableManager =
       Attendance,
       PrefetchHooks Function({bool studentId})
     >;
+typedef $$ReservationsTableCreateCompanionBuilder =
+    ReservationsCompanion Function({
+      Value<int> id,
+      required int studentId,
+      required int bookId,
+      Value<DateTime> reservationDate,
+      Value<String> status,
+    });
+typedef $$ReservationsTableUpdateCompanionBuilder =
+    ReservationsCompanion Function({
+      Value<int> id,
+      Value<int> studentId,
+      Value<int> bookId,
+      Value<DateTime> reservationDate,
+      Value<String> status,
+    });
+
+final class $$ReservationsTableReferences
+    extends BaseReferences<_$AppDatabase, $ReservationsTable, Reservation> {
+  $$ReservationsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $StudentsTable _studentIdTable(_$AppDatabase db) =>
+      db.students.createAlias(
+        $_aliasNameGenerator(db.reservations.studentId, db.students.id),
+      );
+
+  $$StudentsTableProcessedTableManager get studentId {
+    final $_column = $_itemColumn<int>('student_id')!;
+
+    final manager = $$StudentsTableTableManager(
+      $_db,
+      $_db.students,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_studentIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $BooksTable _bookIdTable(_$AppDatabase db) => db.books.createAlias(
+    $_aliasNameGenerator(db.reservations.bookId, db.books.id),
+  );
+
+  $$BooksTableProcessedTableManager get bookId {
+    final $_column = $_itemColumn<int>('book_id')!;
+
+    final manager = $$BooksTableTableManager(
+      $_db,
+      $_db.books,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_bookIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$ReservationsTableFilterComposer
+    extends Composer<_$AppDatabase, $ReservationsTable> {
+  $$ReservationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get reservationDate => $composableBuilder(
+    column: $table.reservationDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$StudentsTableFilterComposer get studentId {
+    final $$StudentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studentId,
+      referencedTable: $db.students,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudentsTableFilterComposer(
+            $db: $db,
+            $table: $db.students,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$BooksTableFilterComposer get bookId {
+    final $$BooksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bookId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableFilterComposer(
+            $db: $db,
+            $table: $db.books,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ReservationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ReservationsTable> {
+  $$ReservationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get reservationDate => $composableBuilder(
+    column: $table.reservationDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$StudentsTableOrderingComposer get studentId {
+    final $$StudentsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studentId,
+      referencedTable: $db.students,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudentsTableOrderingComposer(
+            $db: $db,
+            $table: $db.students,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$BooksTableOrderingComposer get bookId {
+    final $$BooksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bookId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableOrderingComposer(
+            $db: $db,
+            $table: $db.books,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ReservationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ReservationsTable> {
+  $$ReservationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get reservationDate => $composableBuilder(
+    column: $table.reservationDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  $$StudentsTableAnnotationComposer get studentId {
+    final $$StudentsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studentId,
+      referencedTable: $db.students,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudentsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.students,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$BooksTableAnnotationComposer get bookId {
+    final $$BooksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bookId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.books,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ReservationsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ReservationsTable,
+          Reservation,
+          $$ReservationsTableFilterComposer,
+          $$ReservationsTableOrderingComposer,
+          $$ReservationsTableAnnotationComposer,
+          $$ReservationsTableCreateCompanionBuilder,
+          $$ReservationsTableUpdateCompanionBuilder,
+          (Reservation, $$ReservationsTableReferences),
+          Reservation,
+          PrefetchHooks Function({bool studentId, bool bookId})
+        > {
+  $$ReservationsTableTableManager(_$AppDatabase db, $ReservationsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ReservationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ReservationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ReservationsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> studentId = const Value.absent(),
+                Value<int> bookId = const Value.absent(),
+                Value<DateTime> reservationDate = const Value.absent(),
+                Value<String> status = const Value.absent(),
+              }) => ReservationsCompanion(
+                id: id,
+                studentId: studentId,
+                bookId: bookId,
+                reservationDate: reservationDate,
+                status: status,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int studentId,
+                required int bookId,
+                Value<DateTime> reservationDate = const Value.absent(),
+                Value<String> status = const Value.absent(),
+              }) => ReservationsCompanion.insert(
+                id: id,
+                studentId: studentId,
+                bookId: bookId,
+                reservationDate: reservationDate,
+                status: status,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ReservationsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({studentId = false, bookId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (studentId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.studentId,
+                                referencedTable: $$ReservationsTableReferences
+                                    ._studentIdTable(db),
+                                referencedColumn: $$ReservationsTableReferences
+                                    ._studentIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+                    if (bookId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.bookId,
+                                referencedTable: $$ReservationsTableReferences
+                                    ._bookIdTable(db),
+                                referencedColumn: $$ReservationsTableReferences
+                                    ._bookIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ReservationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ReservationsTable,
+      Reservation,
+      $$ReservationsTableFilterComposer,
+      $$ReservationsTableOrderingComposer,
+      $$ReservationsTableAnnotationComposer,
+      $$ReservationsTableCreateCompanionBuilder,
+      $$ReservationsTableUpdateCompanionBuilder,
+      (Reservation, $$ReservationsTableReferences),
+      Reservation,
+      PrefetchHooks Function({bool studentId, bool bookId})
+    >;
+typedef $$StockOpnamesTableCreateCompanionBuilder =
+    StockOpnamesCompanion Function({
+      Value<int> id,
+      Value<DateTime> opnameDate,
+      required int conductedBy,
+      Value<String> status,
+      Value<String?> notes,
+    });
+typedef $$StockOpnamesTableUpdateCompanionBuilder =
+    StockOpnamesCompanion Function({
+      Value<int> id,
+      Value<DateTime> opnameDate,
+      Value<int> conductedBy,
+      Value<String> status,
+      Value<String?> notes,
+    });
+
+final class $$StockOpnamesTableReferences
+    extends BaseReferences<_$AppDatabase, $StockOpnamesTable, StockOpname> {
+  $$StockOpnamesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $UsersTable _conductedByTable(_$AppDatabase db) =>
+      db.users.createAlias(
+        $_aliasNameGenerator(db.stockOpnames.conductedBy, db.users.id),
+      );
+
+  $$UsersTableProcessedTableManager get conductedBy {
+    final $_column = $_itemColumn<int>('conducted_by')!;
+
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_conductedByTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$StockOpnameItemsTable, List<StockOpnameItem>>
+  _stockOpnameItemsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.stockOpnameItems,
+    aliasName: $_aliasNameGenerator(
+      db.stockOpnames.id,
+      db.stockOpnameItems.opnameId,
+    ),
+  );
+
+  $$StockOpnameItemsTableProcessedTableManager get stockOpnameItemsRefs {
+    final manager = $$StockOpnameItemsTableTableManager(
+      $_db,
+      $_db.stockOpnameItems,
+    ).filter((f) => f.opnameId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _stockOpnameItemsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$StockOpnamesTableFilterComposer
+    extends Composer<_$AppDatabase, $StockOpnamesTable> {
+  $$StockOpnamesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get opnameDate => $composableBuilder(
+    column: $table.opnameDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$UsersTableFilterComposer get conductedBy {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.conductedBy,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> stockOpnameItemsRefs(
+    Expression<bool> Function($$StockOpnameItemsTableFilterComposer f) f,
+  ) {
+    final $$StockOpnameItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.stockOpnameItems,
+      getReferencedColumn: (t) => t.opnameId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StockOpnameItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.stockOpnameItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$StockOpnamesTableOrderingComposer
+    extends Composer<_$AppDatabase, $StockOpnamesTable> {
+  $$StockOpnamesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get opnameDate => $composableBuilder(
+    column: $table.opnameDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$UsersTableOrderingComposer get conductedBy {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.conductedBy,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StockOpnamesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StockOpnamesTable> {
+  $$StockOpnamesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get opnameDate => $composableBuilder(
+    column: $table.opnameDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  $$UsersTableAnnotationComposer get conductedBy {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.conductedBy,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> stockOpnameItemsRefs<T extends Object>(
+    Expression<T> Function($$StockOpnameItemsTableAnnotationComposer a) f,
+  ) {
+    final $$StockOpnameItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.stockOpnameItems,
+      getReferencedColumn: (t) => t.opnameId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StockOpnameItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.stockOpnameItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$StockOpnamesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StockOpnamesTable,
+          StockOpname,
+          $$StockOpnamesTableFilterComposer,
+          $$StockOpnamesTableOrderingComposer,
+          $$StockOpnamesTableAnnotationComposer,
+          $$StockOpnamesTableCreateCompanionBuilder,
+          $$StockOpnamesTableUpdateCompanionBuilder,
+          (StockOpname, $$StockOpnamesTableReferences),
+          StockOpname,
+          PrefetchHooks Function({bool conductedBy, bool stockOpnameItemsRefs})
+        > {
+  $$StockOpnamesTableTableManager(_$AppDatabase db, $StockOpnamesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StockOpnamesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StockOpnamesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StockOpnamesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<DateTime> opnameDate = const Value.absent(),
+                Value<int> conductedBy = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+              }) => StockOpnamesCompanion(
+                id: id,
+                opnameDate: opnameDate,
+                conductedBy: conductedBy,
+                status: status,
+                notes: notes,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<DateTime> opnameDate = const Value.absent(),
+                required int conductedBy,
+                Value<String> status = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+              }) => StockOpnamesCompanion.insert(
+                id: id,
+                opnameDate: opnameDate,
+                conductedBy: conductedBy,
+                status: status,
+                notes: notes,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$StockOpnamesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({conductedBy = false, stockOpnameItemsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (stockOpnameItemsRefs) db.stockOpnameItems,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (conductedBy) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.conductedBy,
+                                    referencedTable:
+                                        $$StockOpnamesTableReferences
+                                            ._conductedByTable(db),
+                                    referencedColumn:
+                                        $$StockOpnamesTableReferences
+                                            ._conductedByTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (stockOpnameItemsRefs)
+                        await $_getPrefetchedData<
+                          StockOpname,
+                          $StockOpnamesTable,
+                          StockOpnameItem
+                        >(
+                          currentTable: table,
+                          referencedTable: $$StockOpnamesTableReferences
+                              ._stockOpnameItemsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$StockOpnamesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).stockOpnameItemsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.opnameId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$StockOpnamesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StockOpnamesTable,
+      StockOpname,
+      $$StockOpnamesTableFilterComposer,
+      $$StockOpnamesTableOrderingComposer,
+      $$StockOpnamesTableAnnotationComposer,
+      $$StockOpnamesTableCreateCompanionBuilder,
+      $$StockOpnamesTableUpdateCompanionBuilder,
+      (StockOpname, $$StockOpnamesTableReferences),
+      StockOpname,
+      PrefetchHooks Function({bool conductedBy, bool stockOpnameItemsRefs})
+    >;
+typedef $$StockOpnameItemsTableCreateCompanionBuilder =
+    StockOpnameItemsCompanion Function({
+      Value<int> id,
+      required int opnameId,
+      required int bookId,
+      required int expectedQty,
+      Value<int> actualQty,
+    });
+typedef $$StockOpnameItemsTableUpdateCompanionBuilder =
+    StockOpnameItemsCompanion Function({
+      Value<int> id,
+      Value<int> opnameId,
+      Value<int> bookId,
+      Value<int> expectedQty,
+      Value<int> actualQty,
+    });
+
+final class $$StockOpnameItemsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $StockOpnameItemsTable, StockOpnameItem> {
+  $$StockOpnameItemsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $StockOpnamesTable _opnameIdTable(_$AppDatabase db) =>
+      db.stockOpnames.createAlias(
+        $_aliasNameGenerator(db.stockOpnameItems.opnameId, db.stockOpnames.id),
+      );
+
+  $$StockOpnamesTableProcessedTableManager get opnameId {
+    final $_column = $_itemColumn<int>('opname_id')!;
+
+    final manager = $$StockOpnamesTableTableManager(
+      $_db,
+      $_db.stockOpnames,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_opnameIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $BooksTable _bookIdTable(_$AppDatabase db) => db.books.createAlias(
+    $_aliasNameGenerator(db.stockOpnameItems.bookId, db.books.id),
+  );
+
+  $$BooksTableProcessedTableManager get bookId {
+    final $_column = $_itemColumn<int>('book_id')!;
+
+    final manager = $$BooksTableTableManager(
+      $_db,
+      $_db.books,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_bookIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$StockOpnameItemsTableFilterComposer
+    extends Composer<_$AppDatabase, $StockOpnameItemsTable> {
+  $$StockOpnameItemsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get expectedQty => $composableBuilder(
+    column: $table.expectedQty,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get actualQty => $composableBuilder(
+    column: $table.actualQty,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$StockOpnamesTableFilterComposer get opnameId {
+    final $$StockOpnamesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.opnameId,
+      referencedTable: $db.stockOpnames,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StockOpnamesTableFilterComposer(
+            $db: $db,
+            $table: $db.stockOpnames,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$BooksTableFilterComposer get bookId {
+    final $$BooksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bookId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableFilterComposer(
+            $db: $db,
+            $table: $db.books,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StockOpnameItemsTableOrderingComposer
+    extends Composer<_$AppDatabase, $StockOpnameItemsTable> {
+  $$StockOpnameItemsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get expectedQty => $composableBuilder(
+    column: $table.expectedQty,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get actualQty => $composableBuilder(
+    column: $table.actualQty,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$StockOpnamesTableOrderingComposer get opnameId {
+    final $$StockOpnamesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.opnameId,
+      referencedTable: $db.stockOpnames,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StockOpnamesTableOrderingComposer(
+            $db: $db,
+            $table: $db.stockOpnames,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$BooksTableOrderingComposer get bookId {
+    final $$BooksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bookId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableOrderingComposer(
+            $db: $db,
+            $table: $db.books,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StockOpnameItemsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StockOpnameItemsTable> {
+  $$StockOpnameItemsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get expectedQty => $composableBuilder(
+    column: $table.expectedQty,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get actualQty =>
+      $composableBuilder(column: $table.actualQty, builder: (column) => column);
+
+  $$StockOpnamesTableAnnotationComposer get opnameId {
+    final $$StockOpnamesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.opnameId,
+      referencedTable: $db.stockOpnames,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StockOpnamesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.stockOpnames,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$BooksTableAnnotationComposer get bookId {
+    final $$BooksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bookId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.books,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StockOpnameItemsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StockOpnameItemsTable,
+          StockOpnameItem,
+          $$StockOpnameItemsTableFilterComposer,
+          $$StockOpnameItemsTableOrderingComposer,
+          $$StockOpnameItemsTableAnnotationComposer,
+          $$StockOpnameItemsTableCreateCompanionBuilder,
+          $$StockOpnameItemsTableUpdateCompanionBuilder,
+          (StockOpnameItem, $$StockOpnameItemsTableReferences),
+          StockOpnameItem,
+          PrefetchHooks Function({bool opnameId, bool bookId})
+        > {
+  $$StockOpnameItemsTableTableManager(
+    _$AppDatabase db,
+    $StockOpnameItemsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StockOpnameItemsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StockOpnameItemsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StockOpnameItemsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> opnameId = const Value.absent(),
+                Value<int> bookId = const Value.absent(),
+                Value<int> expectedQty = const Value.absent(),
+                Value<int> actualQty = const Value.absent(),
+              }) => StockOpnameItemsCompanion(
+                id: id,
+                opnameId: opnameId,
+                bookId: bookId,
+                expectedQty: expectedQty,
+                actualQty: actualQty,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int opnameId,
+                required int bookId,
+                required int expectedQty,
+                Value<int> actualQty = const Value.absent(),
+              }) => StockOpnameItemsCompanion.insert(
+                id: id,
+                opnameId: opnameId,
+                bookId: bookId,
+                expectedQty: expectedQty,
+                actualQty: actualQty,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$StockOpnameItemsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({opnameId = false, bookId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (opnameId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.opnameId,
+                                referencedTable:
+                                    $$StockOpnameItemsTableReferences
+                                        ._opnameIdTable(db),
+                                referencedColumn:
+                                    $$StockOpnameItemsTableReferences
+                                        ._opnameIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+                    if (bookId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.bookId,
+                                referencedTable:
+                                    $$StockOpnameItemsTableReferences
+                                        ._bookIdTable(db),
+                                referencedColumn:
+                                    $$StockOpnameItemsTableReferences
+                                        ._bookIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$StockOpnameItemsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StockOpnameItemsTable,
+      StockOpnameItem,
+      $$StockOpnameItemsTableFilterComposer,
+      $$StockOpnameItemsTableOrderingComposer,
+      $$StockOpnameItemsTableAnnotationComposer,
+      $$StockOpnameItemsTableCreateCompanionBuilder,
+      $$StockOpnameItemsTableUpdateCompanionBuilder,
+      (StockOpnameItem, $$StockOpnameItemsTableReferences),
+      StockOpnameItem,
+      PrefetchHooks Function({bool opnameId, bool bookId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5838,4 +8659,10 @@ class $AppDatabaseManager {
       $$SettingsTableTableManager(_db, _db.settings);
   $$AttendancesTableTableManager get attendances =>
       $$AttendancesTableTableManager(_db, _db.attendances);
+  $$ReservationsTableTableManager get reservations =>
+      $$ReservationsTableTableManager(_db, _db.reservations);
+  $$StockOpnamesTableTableManager get stockOpnames =>
+      $$StockOpnamesTableTableManager(_db, _db.stockOpnames);
+  $$StockOpnameItemsTableTableManager get stockOpnameItems =>
+      $$StockOpnameItemsTableTableManager(_db, _db.stockOpnameItems);
 }
